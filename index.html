@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>꽃마을에 난향가득 | 서초동 감성 꽃집</title>
     <meta name="description" content="서초역, 사랑의교회 인근 감각적인 꽃집. 꽃다발, 동양난, 화환, 개업화분 전문.">
-    <meta name="theme-color" content="#2F4F4F">
+    <meta name="theme-color" content="#17110d">
     <link rel="canonical" href="https://awsome82.github.io/holaflower/">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
 
-    <!-- Open Graph (카톡/SNS 공유 미리보기) -->
+    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ko_KR">
     <meta property="og:title" content="꽃마을에 난향가득 | 서초동 감성 꽃집">
@@ -19,7 +19,6 @@
     <meta property="og:image" content="https://awsome82.github.io/holaflower/images/og.jpg">
     <meta name="twitter:card" content="summary_large_image">
 
-    <!-- 구조화 데이터 (검색 노출) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -34,558 +33,501 @@
     }
     </script>
 
-    <!-- Tailwind CSS (스타일링) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Google Fonts (폰트) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap"
         rel="stylesheet">
-
-    <!-- FontAwesome (아이콘) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            green: '#2F4F4F', // 딥 그린
-                            light: '#F5F5F0', // 웜 아이보리
-                            accent: '#D8BFD8', // 톤다운된 라벤더
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['"Noto Sans KR"', 'sans-serif'],
-                        serif: ['"Noto Serif KR"', 'serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
-        /* 부드러운 스크롤 */
-        html {
-            scroll-behavior: smooth;
-            scroll-padding-top: 80px;
+        /* 컨셉: 밤의 꽃집. 간판 불빛(앰버)이 어두운 거리를 비추고, 꽃 색이 그 위에 올라온다. */
+        :root {
+            --bg: #17110d;          /* 밤거리 에스프레소 */
+            --bg-2: #211812;        /* 간판 갈색 */
+            --line: rgba(243, 231, 211, .14);
+            --fg: #f3e7d3;          /* 따뜻한 크림 */
+            --fg-dim: #b9a98f;
+            --amber: #f0a948;       /* 간판 조명 */
+            --peach: #f2a98b;       /* 리시안셔스 */
+            --magenta: #c2457f;     /* 칼라 */
+            --leaf: #7d9a68;
+            --pen: "Nanum Pen Script", "Gowun Batang", cursive;
+            --serif: "Gowun Batang", "Noto Serif KR", serif;
+            --sans: "Gowun Dodum", "Noto Sans KR", system-ui, sans-serif;
+            --gutter: clamp(20px, 5vw, 64px);
         }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: var(--sans);
+            font-size: 17px;
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+        }
+        img { max-width: 100%; display: block; }
+        a { color: inherit; text-decoration: none; }
+        h1, h2, h3, p { margin: 0; }
+        h1, h2, h3 { text-wrap: balance; font-family: var(--serif); font-weight: 700; line-height: 1.25; }
+        :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+        .wrap { max-width: 1180px; margin-inline: auto; padding-inline: var(--gutter); }
+        .eyebrow { font-family: var(--sans); font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--amber); }
+        .pen { font-family: var(--pen); color: var(--amber); }
+        .sec { padding-block: clamp(72px, 11vw, 140px); }
+        .sec-head { display: grid; gap: 14px; margin-bottom: clamp(36px, 6vw, 64px); }
+        .sec-head h2 { font-size: clamp(28px, 4.4vw, 46px); }
+
+        /* ---------- 네비게이션 ---------- */
+        .nav {
+            position: fixed; inset: 0 0 auto 0; z-index: 50;
+            transition: background .3s, box-shadow .3s;
+        }
+        .nav.solid { background: rgba(23, 17, 13, .92); backdrop-filter: blur(10px); box-shadow: 0 1px 0 var(--line); }
+        .nav-in { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+        .logo { font-family: var(--pen); font-size: 30px; line-height: 1; color: var(--fg); }
+        .logo em { font-style: normal; color: var(--amber); }
+        .menu { display: flex; align-items: center; gap: 32px; font-size: 15px; }
+        .menu a:not(.btn):hover { color: var(--amber); }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+            padding: 12px 24px; border-radius: 999px; font-weight: 700; font-size: 15px;
+            font-family: var(--sans); border: 1px solid transparent; cursor: pointer;
+            transition: transform .2s, background .2s, color .2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-amber { background: var(--amber); color: #2a1a05; }
+        .btn-amber:hover { background: #ffc06a; }
+        .btn-ghost { border-color: rgba(243, 231, 211, .45); color: var(--fg); background: transparent; }
+        .btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
+        .btn-kakao { background: #fee500; color: #2a2300; }
+        .burger { display: none; background: none; border: 0; color: var(--fg); font-size: 24px; cursor: pointer; padding: 8px; }
+        .drawer { display: none; background: var(--bg); border-top: 1px solid var(--line); padding: 8px var(--gutter) 24px; }
+        .drawer.open { display: grid; gap: 4px; }
+        .drawer a { padding: 14px 4px; border-bottom: 1px solid var(--line); }
+        .drawer .btn { margin-top: 14px; border: 0; }
+
+        /* ---------- 히어로 ---------- */
+        .hero { position: relative; min-height: min(92svh, 860px); display: flex; align-items: flex-end; overflow: hidden; }
+        .hero > .wrap { width: 100%; }
+        .hero-img { position: absolute; inset: 0; }
+        .hero-img img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 40%; }
+        .hero-img::after {
+            content: ""; position: absolute; inset: 0;
+            background:
+                linear-gradient(to top, var(--bg) 2%, rgba(23, 17, 13, .55) 38%, rgba(23, 17, 13, .1) 70%),
+                linear-gradient(to right, rgba(23, 17, 13, .75), rgba(23, 17, 13, 0) 60%);
+        }
+        .hero-copy { position: relative; padding-block: 140px 72px; max-width: 760px; }
+        .hero-copy .pen { font-size: clamp(26px, 3.4vw, 36px); display: block; margin-bottom: 8px; }
+        .hero h1 { font-size: clamp(36px, 6.4vw, 72px); letter-spacing: -.01em; }
+        .hero h1 span { color: var(--amber); }
+        .hero p.lead { margin-top: 22px; color: #e3d5bd; max-width: 34em; font-size: clamp(16px, 1.6vw, 19px); }
+        .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+        .hours { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; font-size: 14px; color: var(--fg-dim); }
+        .hours i { color: var(--amber); margin-right: 8px; }
+
+        /* ---------- 소개 ---------- */
+        .about { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(32px, 6vw, 96px); align-items: start; }
+        .about .sec-head { position: sticky; top: 110px; margin: 0; }
+        .about .sec-head .pen { font-size: 28px; }
+        .about-list { display: grid; }
+        .about-item { display: grid; grid-template-columns: 52px 1fr; gap: 20px; padding-block: 30px; border-top: 1px solid var(--line); }
+        .about-item:last-child { border-bottom: 1px solid var(--line); }
+        .about-item i { font-size: 24px; color: var(--peach); margin-top: 4px; }
+        .about-item h3 { font-size: 22px; margin-bottom: 8px; }
+        .about-item p { color: var(--fg-dim); }
+
+        /* ---------- 갤러리 ---------- */
+        .gallery { background: var(--bg-2); }
+        .gal-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; }
+        .gal-head .note { color: var(--fg-dim); font-size: 14px; }
+        .gal-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; align-items: start; }
+        .tile { position: relative; overflow: hidden; border-radius: 4px; background: #000; margin: 0; }
+        .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
+        .tile:hover img { transform: scale(1.06); }
+        .tile figcaption {
+            position: absolute; inset: auto 0 0 0; padding: 56px 20px 18px;
+            background: linear-gradient(to top, rgba(14, 9, 6, .88), transparent);
+        }
+        .tile h3 { font-size: 20px; }
+        .tile p { font-size: 14px; color: var(--peach); margin-top: 2px; }
+        .t1 { grid-column: 1 / span 5; aspect-ratio: 4 / 5; }
+        .t2 { grid-column: 6 / span 4; aspect-ratio: 4 / 5; margin-top: 56px; }
+        .t3 { grid-column: 10 / span 3; aspect-ratio: 3 / 4; }
+        .t4 { grid-column: 4 / span 6; aspect-ratio: 16 / 10; }
+        .more { margin-top: 44px; }
+        .more a { display: inline-flex; gap: 10px; align-items: center; color: var(--amber); border-bottom: 1px solid currentColor; padding-bottom: 3px; }
+
+        /* ---------- 주문 방법 ---------- */
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(24px, 4vw, 56px); counter-reset: s; }
+        .step { position: relative; padding-top: 24px; border-top: 2px solid var(--amber); }
+        .step::before { counter-increment: s; content: counter(s); font-family: var(--pen); font-size: 54px; line-height: 1; color: var(--amber); display: block; margin-bottom: 8px; }
+        .step h3 { font-size: 21px; margin-bottom: 8px; }
+        .step p { color: var(--fg-dim); font-size: 15.5px; }
+
+        /* ---------- 리뷰 ---------- */
+        .reviews { background: var(--bg-2); }
+        .rev-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: clamp(24px, 5vw, 72px); }
+        .rev-main blockquote { margin: 0; font-family: var(--serif); font-size: clamp(22px, 2.9vw, 32px); line-height: 1.55; position: relative; padding-top: 44px; }
+        .rev-main blockquote::before { content: "“"; position: absolute; top: -14px; left: -4px; font-size: 96px; line-height: 1; color: var(--magenta); font-family: var(--serif); }
+        .rev-side { display: grid; gap: 28px; align-content: start; }
+        .rev-side blockquote { margin: 0; color: #dccfb6; padding-left: 20px; border-left: 2px solid var(--line); }
+        .who { margin-top: 18px; font-size: 14px; color: var(--fg-dim); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .stars { color: var(--amber); letter-spacing: 2px; font-size: 13px; }
+
+        /* ---------- 오시는 길 ---------- */
+        .contact { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(32px, 6vw, 80px); align-items: stretch; }
+        .contact > * { min-width: 0; }
+        .contact h2 { font-size: clamp(30px, 4.6vw, 48px); }
+        .info { display: grid; gap: 0; margin: 32px 0 0; padding: 0; }
+        .info li { list-style: none; display: grid; grid-template-columns: 28px 1fr; gap: 14px; padding-block: 18px; border-top: 1px solid var(--line); }
+        .info i { color: var(--amber); margin-top: 6px; }
+        .info b { display: block; font-family: var(--sans); font-size: 12px; letter-spacing: .2em; color: var(--fg-dim); font-weight: 400; }
+        .info .tel { font-family: var(--serif); font-size: 26px; font-weight: 700; }
+        .info small { color: var(--fg-dim); }
+        .contact-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+        .map { position: relative; min-height: 380px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+        .map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: grayscale(.35) contrast(1.05) brightness(.9); }
+        .map .naver { position: absolute; right: 14px; bottom: 14px; background: #03c75a; color: #fff; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); }
+
+        /* ---------- 푸터 ---------- */
+        footer { border-top: 1px solid var(--line); padding-block: 40px; color: var(--fg-dim); font-size: 14px; }
+        .foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .foot .logo { font-size: 28px; }
+        .foot a:hover { color: var(--amber); }
+
+        /* ---------- 음악 버튼 ---------- */
+        .music {
+            position: fixed; right: 20px; bottom: 20px; z-index: 50; width: 52px; height: 52px; border-radius: 50%;
+            background: var(--bg-2); color: var(--amber); border: 1px solid rgba(240, 169, 72, .5);
+            font-size: 18px; cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+        }
+        .music.on { background: var(--amber); color: #2a1a05; }
+        .music.on i { animation: spin 3s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ---------- 등장 애니메이션 (JS가 켜졌을 때만) ---------- */
+        .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity .9s ease, transform .9s ease; }
+        .js .reveal.in { opacity: 1; transform: none; }
 
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
-            .reveal { transition: none; opacity: 1; transform: none; }
-            .music-playing i { animation: none; }
+            .js .reveal { opacity: 1; transform: none; transition: none; }
+            .music.on i { animation: none; }
+            .tile img { transition: none; }
         }
 
-        /* 등장 애니메이션 클래스 */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
+        /* ---------- 반응형 ---------- */
+        @media (max-width: 900px) {
+            .menu { display: none; }
+            .burger { display: block; }
+            .about, .contact, .rev-grid { grid-template-columns: 1fr; }
+            .about .sec-head { position: static; }
+            .steps { grid-template-columns: 1fr; }
+            .gal-grid { grid-template-columns: repeat(2, 1fr); }
+            .t1, .t2, .t3, .t4 { grid-column: auto; margin-top: 0; }
+            .t4 { grid-column: 1 / -1; }
+            .t3 { aspect-ratio: 4 / 5; }
         }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* 히어로 섹션 배경 오버레이 */
-        .hero-overlay {
-            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4));
-        }
-
-        /* 음악 버튼 애니메이션 */
-        @keyframes spin-slow {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .music-playing i {
-            animation: spin-slow 3s linear infinite;
+        @media (max-width: 480px) {
+            .gal-grid { grid-template-columns: 1fr; }
+            .t4 { grid-column: auto; aspect-ratio: 4 / 5; }
+            .hero-copy { padding-block: 120px 56px; }
         }
     </style>
 </head>
 
-<body class="font-sans text-gray-700 bg-brand-light antialiased">
-
-    <!-- BGM 오디오 태그 (화면엔 안 보임) -->
-    <!-- 주의: 같은 폴더에 bgm.mp3 파일이 있어야 소리가 납니다 -->
+<body>
     <audio id="bgm-player" loop preload="none">
         <source src="bgm.mp3" type="audio/mp3">
     </audio>
 
-    <!-- 네비게이션 바 -->
-    <nav class="fixed w-full z-50 transition-all duration-300 bg-white/90 backdrop-blur-md border-b border-gray-100"
-        id="navbar">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- 로고 -->
-                <div class="flex-shrink-0 flex items-center">
-                    <a href="#" class="font-serif text-2xl font-bold text-brand-green tracking-tighter">
-                        꽃마을에<span class="font-light">난향가득</span>
-                    </a>
+    <header class="nav" id="navbar">
+        <div class="wrap nav-in">
+            <a href="#" class="logo">꽃마을에 <em>난향가득</em></a>
+            <nav class="menu" aria-label="주요 메뉴">
+                <a href="#about">소개</a>
+                <a href="#portfolio">갤러리</a>
+                <a href="#order">주문 방법</a>
+                <a href="#reviews">후기</a>
+                <a href="#contact">오시는 길</a>
+                <a href="tel:0507-1485-4011" class="btn btn-amber">전화 문의</a>
+            </nav>
+            <button class="burger" id="mobile-menu-btn" aria-label="메뉴 열기" aria-expanded="false"
+                aria-controls="mobile-menu"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="drawer" id="mobile-menu">
+            <a href="#about">소개</a>
+            <a href="#portfolio">갤러리</a>
+            <a href="#order">주문 방법</a>
+            <a href="#reviews">후기</a>
+            <a href="#contact">오시는 길</a>
+            <a href="tel:0507-1485-4011" class="btn btn-amber">전화 문의</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- 히어로 -->
+        <section class="hero">
+            <div class="hero-img">
+                <img src="images/hero.webp" fetchpriority="high" alt="밤에 불이 켜진 꽃마을에 난향가득 매장 전경">
+            </div>
+            <div class="wrap">
+                <div class="hero-copy">
+                    <span class="pen">서초동 꽃집, 오늘도 불이 켜져 있어요</span>
+                    <h1>일상의 틈을 채우는<br><span>난향(蘭香)</span>을 전합니다</h1>
+                    <p class="lead">서초역과 사랑의교회 사이, 매일 아침 들여온 꽃과 식물이 머무는 곳입니다.
+                        받는 분의 분위기와 계절에 맞춰 한 다발씩 직접 디자인합니다.</p>
+                    <div class="hero-cta">
+                        <a href="tel:0507-1485-4011" class="btn btn-amber"><i class="fas fa-phone-alt"></i> 예약 문의</a>
+                        <a href="#portfolio" class="btn btn-ghost">작품 보기</a>
+                    </div>
+                    <div class="hours">
+                        <span><i class="fas fa-bolt"></i>당일 예약</span>
+                        <span><i class="fas fa-store"></i>매장 픽업</span>
+                        <span><i class="fas fa-truck"></i>배달 가능</span>
+                    </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- 데스크탑 메뉴 -->
-                <div class="hidden md:flex space-x-8 items-center">
-                    <a href="#about" class="text-gray-600 hover:text-brand-green transition-colors font-medium">소개</a>
-                    <a href="#portfolio"
-                        class="text-gray-600 hover:text-brand-green transition-colors font-medium">갤러리</a>
-                    <a href="#reviews" class="text-gray-600 hover:text-brand-green transition-colors font-medium">리뷰</a>
-                    <a href="#contact" class="text-gray-600 hover:text-brand-green transition-colors font-medium">오시는
-                        길</a>
-                    <a href="tel:0507-1485-4011"
-                        class="bg-brand-green text-white px-5 py-2 rounded-full hover:bg-opacity-90 transition-all shadow-md text-sm">
-                        전화 문의
-                    </a>
+        <!-- 소개 -->
+        <section id="about" class="sec">
+            <div class="wrap about">
+                <div class="sec-head reveal">
+                    <span class="eyebrow">Our philosophy</span>
+                    <h2>왜 '꽃마을에 난향가득'인가요?</h2>
+                    <span class="pen">꽃도, 마음도 신선하게</span>
                 </div>
-
-                <!-- 모바일 메뉴 버튼 -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-btn" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobile-menu" class="text-gray-600 hover:text-brand-green focus:outline-none">
-                        <i class="fas fa-bars text-2xl"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 모바일 메뉴 드롭다운 -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100">
-            <div class="px-4 pt-2 pb-6 space-y-1 sm:px-3">
-                <a href="#about"
-                    class="block px-3 py-3 text-gray-600 hover:bg-gray-50 hover:text-brand-green rounded-md">소개</a>
-                <a href="#portfolio"
-                    class="block px-3 py-3 text-gray-600 hover:bg-gray-50 hover:text-brand-green rounded-md">갤러리</a>
-                <a href="#reviews"
-                    class="block px-3 py-3 text-gray-600 hover:bg-gray-50 hover:text-brand-green rounded-md">리뷰</a>
-                <a href="#contact"
-                    class="block px-3 py-3 text-gray-600 hover:bg-gray-50 hover:text-brand-green rounded-md">오시는 길</a>
-                <a href="tel:0507-1485-4011"
-                    class="block px-3 py-3 mt-2 text-center bg-brand-green text-white rounded-md font-medium">전화 문의</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- 히어로 섹션 (메인) -->
-    <section class="relative h-screen flex items-center justify-center overflow-hidden">
-        <!-- 배경 이미지 (꽃 이미지 대체) -->
-        <div class="absolute inset-0 z-0">
-            <img src="images/hero.webp" fetchpriority="high"
-                alt="꽃마을에 난향가득 꽃다발" class="w-full h-full object-cover">
-            <div class="hero-overlay absolute inset-0"></div>
-        </div>
-
-        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto text-white reveal active">
-            <p class="text-sm md:text-base tracking-[0.2em] mb-4 text-gray-200 uppercase">Seocho Flower Studio</p>
-            <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                일상의 틈을 채우는<br>난향(蘭香)을 전합니다
-            </h1>
-            <p class="text-base md:text-xl text-gray-100 mb-10 font-light max-w-2xl mx-auto leading-relaxed">
-                서초동, 가장 감각적인 꽃과 식물이 머무는 곳.<br class="hidden md:block">
-                당신의 특별한 순간을 더욱 빛나게 디자인합니다.
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="tel:0507-1485-4011"
-                    class="px-8 py-4 bg-white text-brand-green font-bold rounded-full hover:bg-gray-100 transition-all shadow-lg">
-                    예약 문의하기
-                </a>
-                <a href="#portfolio"
-                    class="px-8 py-4 border border-white text-white font-medium rounded-full hover:bg-white hover:text-brand-green transition-all">
-                    포트폴리오 보기
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- 브랜드 스토리 (Why Us) -->
-    <section id="about" class="py-20 md:py-32 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal">
-                <span class="text-brand-green font-bold tracking-wider text-sm">OUR PHILOSOPHY</span>
-                <h2 class="font-serif text-3xl md:text-4xl font-bold mt-2 text-gray-900">왜 '꽃마을에 난향가득' 인가요?</h2>
-                <div class="w-16 h-1 bg-brand-green mx-auto mt-6"></div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <!-- Feature 1 -->
-                <div class="text-center p-8 rounded-2xl bg-brand-light hover:shadow-xl transition-shadow reveal">
-                    <div
-                        class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm text-brand-green text-2xl">
+                <div class="about-list">
+                    <div class="about-item reveal">
                         <i class="fas fa-palette"></i>
+                        <div>
+                            <h3>감각적인 색감 조합</h3>
+                            <p>"꽃 조합이 예뻐요"라는 칭찬을 가장 많이 듣습니다. 받는 분의 분위기와 계절을 고려해 가장 조화로운 한 다발을 디자인합니다.</p>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold mb-3 font-serif">감각적인 색감 조합</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        "꽃 조합이 예뻐요"라는 칭찬을 가장 많이 듣습니다. 받는 분의 분위기와 계절을 고려해 가장 조화로운 한 다발을 디자인합니다.
-                    </p>
-                </div>
-
-                <!-- Feature 2 -->
-                <div class="text-center p-8 rounded-2xl bg-brand-light hover:shadow-xl transition-shadow reveal"
-                    style="transition-delay: 100ms;">
-                    <div
-                        class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm text-brand-green text-2xl">
+                    <div class="about-item reveal">
                         <i class="fas fa-leaf"></i>
+                        <div>
+                            <h3>최상의 신선도</h3>
+                            <p>매일 아침 엄선한 싱싱한 꽃만 사용합니다. 생명력이 느껴지는 꽃으로 마음을 오래도록 전해 드립니다.</p>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold mb-3 font-serif">최상의 신선도</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        매일 아침 엄선한 싱싱한 꽃만을 사용합니다. 생명력이 느껴지는 꽃으로 당신의 마음을 오래도록 전달해 드립니다.
-                    </p>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="text-center p-8 rounded-2xl bg-brand-light hover:shadow-xl transition-shadow reveal"
-                    style="transition-delay: 200ms;">
-                    <div
-                        class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm text-brand-green text-2xl">
+                    <div class="about-item reveal">
                         <i class="fas fa-tags"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3 font-serif">합리적인 가격</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        부담 없는 한 송이부터 특별한 날의 대형 꽃다발까지. 가격 거품을 빼고, 그 이상의 가치를 꽉 채워 드립니다.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 포트폴리오 (메뉴) -->
-    <section id="portfolio" class="py-20 bg-brand-light">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-12 reveal">
-                <div>
-                    <span class="text-brand-green font-bold tracking-wider text-sm">GALLERY</span>
-                    <h2 class="font-serif text-3xl md:text-4xl font-bold mt-2 text-gray-900">당신을 위한 꽃 추천</h2>
-                </div>
-                <p class="text-gray-500 mt-4 md:mt-0 text-sm">
-                    * 원하는 이미지 캡처 후 문의주시면 더욱 좋습니다.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Item 1 -->
-                <div class="group relative overflow-hidden rounded-xl shadow-lg aspect-[4/5] reveal">
-                    <img src="2025-12-18 184907.jpg" alt="감성 핸드타이드 꽃다발" loading="lazy" decoding="async"
-                        class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-90"></div>
-                    <div class="absolute bottom-0 left-0 p-6 text-white">
-                        <h3 class="text-xl font-serif font-bold">감성 핸드타이드</h3>
-                        <p class="text-sm opacity-80 mt-1">기념일, 생일 축하 꽃다발</p>
-                    </div>
-                </div>
-
-                <!-- Item 2 -->
-                <div class="group relative overflow-hidden rounded-xl shadow-lg aspect-[4/5] reveal"
-                    style="transition-delay: 100ms;">
-                    <img src="2025-12-18 185037.jpg" alt="플라워 바스켓" loading="lazy" decoding="async"
-                        class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-90"></div>
-                    <div class="absolute bottom-0 left-0 p-6 text-white">
-                        <h3 class="text-xl font-serif font-bold">플라워 바스켓</h3>
-                        <p class="text-sm opacity-80 mt-1">출산, 승진 축하 바구니</p>
-                    </div>
-                </div>
-
-                <!-- Item 3 -->
-                <div class="group relative overflow-hidden rounded-xl shadow-lg aspect-[4/5] reveal"
-                    style="transition-delay: 200ms;">
-                    <img src="2025-12-18 185328.jpg" alt="동양난·서양난" loading="lazy" decoding="async"
-                        class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-90"></div>
-                    <div class="absolute bottom-0 left-0 p-6 text-white">
-                        <h3 class="text-xl font-serif font-bold">동·서양난</h3>
-                        <p class="text-sm opacity-80 mt-1">승진, 영전, 개업 선물</p>
-                    </div>
-                </div>
-
-                <!-- Item 4 -->
-                <div class="group relative overflow-hidden rounded-xl shadow-lg aspect-[4/5] reveal"
-                    style="transition-delay: 300ms;">
-                    <img src="2025-12-18 185409.jpg" alt="웨딩·성전 꽃꽂이" loading="lazy" decoding="async"
-                        class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-90"></div>
-                    <div class="absolute bottom-0 left-0 p-6 text-white">
-                        <h3 class="text-xl font-serif font-bold">웨딩 & 성전 꽃꽂이</h3>
-                        <p class="text-sm opacity-80 mt-1">사랑의교회 인근 배송 가능</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-center mt-12">
-                <a href="https://www.instagram.com/flowervillage_/" target="_blank" rel="noopener"
-                    class="inline-flex items-center text-brand-green font-medium hover:underline">
-                    <i class="fab fa-instagram mr-2"></i> 인스타그램에서 더 많은 사진 보기
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- 리뷰 섹션 -->
-    <section id="reviews" class="py-20 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal">
-                <span class="text-brand-green font-bold tracking-wider text-sm">REVIEW</span>
-                <h2 class="font-serif text-3xl md:text-4xl font-bold mt-2 text-gray-900">고객님들의 소중한 후기</h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Review 1 -->
-                <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 reveal">
-                    <div class="flex text-yellow-400 mb-4 text-sm">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                            class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="text-gray-700 italic mb-6 leading-relaxed">
-                        "원하는 가격대 꽃다발 말씀드리니 바로 꽃 조합해서 만들어주셨어요. 꽃 하나하나 너무 싱싱하고 예쁘고 조합도 고급스러워요!!! 추천합니다!!!"
-                    </p>
-                    <div class="flex items-center">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs">
-                            DD</div>
-                        <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">dd277님</p>
-                            <p class="text-xs text-gray-500">영수증 인증 방문자</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review 2 -->
-                <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 reveal"
-                    style="transition-delay: 100ms;">
-                    <div class="flex text-yellow-400 mb-4 text-sm">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                            class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="text-gray-700 italic mb-6 leading-relaxed">
-                        "가까운 곳에 있어서 접근성도 좋고 주문하는대로 잘 만들어주셔서 좋아요. 사장님 센스가 좋으셔서 믿고 맡깁니다."
-                    </p>
-                    <div class="flex items-center">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs">
-                            LM</div>
-                        <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">lavender milkshake님</p>
-                            <p class="text-xs text-gray-500">영수증 인증 방문자</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review 3 -->
-                <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 reveal"
-                    style="transition-delay: 200ms;">
-                    <div class="flex text-yellow-400 mb-4 text-sm">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
-                            class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="text-gray-700 italic mb-6 leading-relaxed">
-                        "사장님이 친절하시고 스토크 꽃다발 급히 주문했는데 예뻤어요! 특별한 날 덕분에 기분 좋았습니다."
-                    </p>
-                    <div class="flex items-center">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs">
-                            GR</div>
-                        <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">gre****님</p>
-                            <p class="text-xs text-gray-500">영수증 인증 방문자</p>
+                        <div>
+                            <h3>합리적인 가격</h3>
+                            <p>부담 없는 한 송이부터 특별한 날의 대형 꽃다발까지. 가격 거품을 빼고 그 이상의 가치를 채워 드립니다.</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- 오시는 길 & Contact -->
-    <section id="contact" class="py-20 bg-brand-green text-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center reveal">
-                <!-- Info -->
-                <div>
-                    <h2 class="font-serif text-3xl font-bold mb-8">꽃마을에 난향가득</h2>
+        <!-- 갤러리 -->
+        <section id="portfolio" class="sec gallery">
+            <div class="wrap">
+                <div class="sec-head gal-head reveal">
+                    <div style="display:grid;gap:14px">
+                        <span class="eyebrow">Gallery</span>
+                        <h2>당신을 위한 꽃 추천</h2>
+                    </div>
+                    <p class="note">원하는 이미지를 캡처해서 문의해 주시면 더 정확해요.</p>
+                </div>
+                <div class="gal-grid">
+                    <figure class="tile t1 reveal">
+                        <img src="2025-12-18%20184907.jpg" alt="튤립과 칼라, 리시안셔스로 만든 핸드타이드 꽃다발" loading="lazy" decoding="async">
+                        <figcaption><h3>감성 핸드타이드</h3><p>기념일, 생일 축하 꽃다발</p></figcaption>
+                    </figure>
+                    <figure class="tile t2 reveal">
+                        <img src="2025-12-18%20185037.jpg" alt="출산·승진 축하용 플라워 바스켓" loading="lazy" decoding="async">
+                        <figcaption><h3>플라워 바스켓</h3><p>출산, 승진 축하 바구니</p></figcaption>
+                    </figure>
+                    <figure class="tile t3 reveal">
+                        <img src="2025-12-18%20185328.jpg" alt="영전 축하 리본을 단 동양란" loading="lazy" decoding="async">
+                        <figcaption><h3>동·서양난</h3><p>승진, 영전, 개업 선물</p></figcaption>
+                    </figure>
+                    <figure class="tile t4 reveal">
+                        <img src="2025-12-18%20185409.jpg" alt="웨딩·성전 꽃꽂이" loading="lazy" decoding="async">
+                        <figcaption><h3>웨딩 &amp; 성전 꽃꽂이</h3><p>사랑의교회 인근 배송 가능</p></figcaption>
+                    </figure>
+                </div>
+                <div class="more reveal">
+                    <a href="https://www.instagram.com/flowervillage_/" target="_blank" rel="noopener">
+                        <i class="fab fa-instagram"></i> 인스타그램에서 더 많은 작품 보기
+                    </a>
+                </div>
+            </div>
+        </section>
 
-                    <ul class="space-y-6">
-                        <li class="flex items-start">
-                            <i class="fas fa-map-marker-alt mt-1 mr-4 text-brand-accent text-xl"></i>
-                            <div>
-                                <p class="font-bold text-lg">LOCATION</p>
-                                <p class="opacity-80">사랑의교회, 서초역 인근</p>
-                                <p class="text-sm opacity-60 mt-1">* 매장 앞 잠시 주차 가능합니다.</p>
-                            </div>
+        <!-- 주문 방법 -->
+        <section id="order" class="sec">
+            <div class="wrap">
+                <div class="sec-head reveal">
+                    <span class="eyebrow">How to order</span>
+                    <h2>주문은 세 단계면 충분해요</h2>
+                </div>
+                <div class="steps">
+                    <div class="step reveal">
+                        <h3>원하는 느낌 고르기</h3>
+                        <p>인스타그램이나 갤러리에서 마음에 드는 사진을 캡처하세요. 예산과 용도만 알려주셔도 됩니다.</p>
+                    </div>
+                    <div class="step reveal">
+                        <h3>전화 또는 카톡 문의</h3>
+                        <p>받는 분, 날짜, 예산을 알려주시면 가능한 구성을 바로 안내해 드립니다. 미리 예약하면 더 정성껏 준비합니다.</p>
+                    </div>
+                    <div class="step reveal">
+                        <h3>픽업 또는 배달</h3>
+                        <p>매장 앞 잠시 주차가 가능합니다. 당일 예약, 픽업, 배달 모두 됩니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 후기 -->
+        <section id="reviews" class="sec reviews">
+            <div class="wrap">
+                <div class="sec-head reveal">
+                    <span class="eyebrow">Review</span>
+                    <h2>고객님들이 남겨 주신 후기</h2>
+                </div>
+                <div class="rev-grid">
+                    <div class="rev-main reveal">
+                        <blockquote>원하는 가격대 꽃다발 말씀드리니 바로 꽃 조합해서 만들어주셨어요. 꽃 하나하나 너무 싱싱하고 예쁘고 조합도 고급스러워요. 추천합니다!</blockquote>
+                        <div class="who"><span class="stars">★★★★★</span> dd277님 · 영수증 인증 방문자</div>
+                    </div>
+                    <div class="rev-side">
+                        <div class="reveal">
+                            <blockquote>가까운 곳에 있어서 접근성도 좋고 주문하는대로 잘 만들어주셔서 좋아요. 사장님 센스가 좋으셔서 믿고 맡깁니다.</blockquote>
+                            <div class="who"><span class="stars">★★★★★</span> lavender milkshake님 · 영수증 인증</div>
+                        </div>
+                        <div class="reveal">
+                            <blockquote>사장님이 친절하시고 스토크 꽃다발 급히 주문했는데 예뻤어요! 특별한 날 덕분에 기분 좋았습니다.</blockquote>
+                            <div class="who"><span class="stars">★★★★★</span> gre****님 · 영수증 인증</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 오시는 길 -->
+        <section id="contact" class="sec">
+            <div class="wrap contact">
+                <div class="reveal">
+                    <span class="eyebrow">Visit</span>
+                    <h2 style="margin-top:12px">꽃마을에 난향가득</h2>
+                    <ul class="info">
+                        <li>
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div><b>LOCATION</b>사랑의교회, 서초역 인근<br><small>매장 앞 잠시 주차 가능합니다.</small></div>
                         </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-phone-alt mt-1 mr-4 text-brand-accent text-xl"></i>
-                            <div>
-                                <p class="font-bold text-lg">CALL</p>
-                                <a href="tel:0507-1485-4011"
-                                    class="opacity-80 hover:text-brand-accent transition-colors text-xl">0507-1485-4011</a>
-                            </div>
+                        <li>
+                            <i class="fas fa-phone-alt"></i>
+                            <div><b>CALL</b><a class="tel" href="tel:0507-1485-4011">0507-1485-4011</a></div>
                         </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-comment mt-1 mr-4 text-brand-accent text-xl"></i>
-                            <div>
-                                <p class="font-bold text-lg">KAKAO TALK</p>
-                                <p class="opacity-80">ID: holaflower</p>
-                            </div>
+                        <li>
+                            <i class="fas fa-comment"></i>
+                            <div><b>KAKAO TALK</b>ID: holaflower</div>
                         </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-clock mt-1 mr-4 text-brand-accent text-xl"></i>
-                            <div>
-                                <p class="font-bold text-lg">HOURS & RESERVATION</p>
-                                <p class="opacity-80">미리 예약해주시면 더욱 정성껏 준비해 드립니다.</p>
-                                <p class="text-sm opacity-60 mt-1">(당일 예약, 픽업, 배달 가능)</p>
-                            </div>
+                        <li>
+                            <i class="fas fa-clock"></i>
+                            <div><b>RESERVATION</b>미리 예약해 주시면 더욱 정성껏 준비해 드립니다.<br><small>당일 예약, 픽업, 배달 가능</small></div>
                         </li>
                     </ul>
-
-                    <div class="mt-10 flex gap-4">
-                        <a href="tel:0507-1485-4011"
-                            class="bg-white text-brand-green px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-                            전화 걸기
-                        </a>
-                        <!-- 카카오톡 ID 복사 (오픈채팅 링크가 있다면 <a href>로 교체) -->
-                        <button id="kakao-btn"
-                            class="bg-[#FEE500] text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-[#FDD835] transition-colors">
-                            카카오톡 문의
-                        </button>
+                    <div class="contact-cta">
+                        <a href="tel:0507-1485-4011" class="btn btn-amber"><i class="fas fa-phone-alt"></i> 전화 걸기</a>
+                        <button id="kakao-btn" class="btn btn-kakao" type="button">카카오톡 ID 복사</button>
                     </div>
                 </div>
-
-                <!-- Map Area -->
-                <div class="h-80 md:h-full bg-gray-200 rounded-2xl overflow-hidden relative shadow-2xl group">
-                    <!-- Google Maps Embed (시각적 위치 확인용) -->
+                <div class="map reveal">
                     <iframe src="https://maps.google.com/maps?q=꽃마을에난향가득%20서초&t=&z=16&ie=UTF8&iwloc=&output=embed"
-                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade" title="꽃마을에 난향가득 위치">
-                    </iframe>
-
-                    <!-- 네이버 지도 바로가기 버튼 (오버레이) -->
-                    <a href="https://naver.me/Fmfa6W2y" target="_blank" rel="noopener"
-                        class="absolute bottom-4 right-4 bg-[#03C75A] text-white px-4 py-2 rounded-lg font-bold shadow-lg hover:bg-[#02b351] hover:scale-105 transition-all flex items-center gap-2 z-10 border border-white/20">
-                        <span class="font-black text-lg">N</span> 네이버 지도로 자세히 보기
-                    </a>
+                        allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                        title="꽃마을에 난향가득 위치"></iframe>
+                    <a class="naver" href="https://naver.me/Fmfa6W2y" target="_blank" rel="noopener">N 네이버 지도로 보기</a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 py-10 border-t border-gray-800">
-        <div
-            class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="text-center md:text-left">
-                <h3 class="text-white font-serif font-bold text-lg mb-1">꽃마을에 난향가득</h3>
-                <p class="text-sm">서초역·사랑의교회 인근 | 전화 0507-1485-4011</p>
-                <p class="text-sm mt-2">© 2025 Flower Village. All rights reserved.</p>
+    <footer>
+        <div class="wrap foot">
+            <div>
+                <a href="#" class="logo">꽃마을에 <em>난향가득</em></a>
+                <p style="margin-top:6px">서초역·사랑의교회 인근 | 0507-1485-4011</p>
+                <p>© 2025 Flower Village. All rights reserved.</p>
             </div>
-            <div class="flex space-x-6">
-                <a href="https://www.instagram.com/flowervillage_/" target="_blank" rel="noopener" aria-label="인스타그램"
-                    class="hover:text-white transition-colors"><i class="fab fa-instagram text-2xl"></i></a>
-            </div>
+            <a href="https://www.instagram.com/flowervillage_/" target="_blank" rel="noopener" aria-label="인스타그램"><i
+                    class="fab fa-instagram" style="font-size:28px"></i></a>
         </div>
     </footer>
 
-    <!-- 음악 재생 플로팅 버튼 (우측 하단) -->
-    <button id="music-btn"
-        class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brand-green text-white rounded-full shadow-lg flex items-center justify-center hover:bg-opacity-90 transition-all transform hover:scale-105 focus:outline-none ring-2 ring-white ring-opacity-50"
-        title="배경음악 켜기/끄기" aria-label="배경음악 켜기/끄기">
-        <i class="fas fa-music text-xl"></i>
+    <button id="music-btn" class="music" type="button" title="배경음악 켜기/끄기" aria-label="배경음악 켜기/끄기">
+        <i class="fas fa-music"></i>
     </button>
 
-    <!-- 자바스크립트 -->
     <script>
-        // 배경음악 제어 스크립트
-        const musicBtn = document.getElementById('music-btn');
-        const bgmPlayer = document.getElementById('bgm-player');
-        const musicIcon = musicBtn.querySelector('i');
-        let isMusicPlaying = false;
+        document.documentElement.classList.add('js');
 
+        // 배경음악
+        const musicBtn = document.getElementById('music-btn');
+        const bgm = document.getElementById('bgm-player');
+        const musicIcon = musicBtn.querySelector('i');
+        let playing = false;
         musicBtn.addEventListener('click', () => {
-            if (isMusicPlaying) {
-                bgmPlayer.pause();
-                musicIcon.classList.remove('fa-compact-disc');
-                musicIcon.classList.add('fa-music');
-                musicBtn.classList.remove('music-playing');
-                musicBtn.classList.remove('bg-brand-accent');
-                musicBtn.classList.add('bg-brand-green');
+            if (playing) {
+                bgm.pause();
+                musicBtn.classList.remove('on');
+                musicIcon.className = 'fas fa-music';
+                playing = false;
             } else {
-                // 재생 시도 (브라우저 정책 대응)
-                bgmPlayer.play().then(() => {
-                    musicIcon.classList.remove('fa-music');
-                    musicIcon.classList.add('fa-compact-disc');
-                    musicBtn.classList.add('music-playing'); // 회전 애니메이션
-                    musicBtn.classList.remove('bg-brand-green');
-                    musicBtn.classList.add('bg-brand-accent'); // 색상 변경
-                }).catch(error => {
-                    alert("음악 파일을 찾을 수 없거나 재생할 수 없습니다.\n같은 폴더에 'bgm.mp3' 파일이 있는지 확인해주세요.");
-                    console.error("Music play failed:", error);
+                bgm.play().then(() => {
+                    musicBtn.classList.add('on');
+                    musicIcon.className = 'fas fa-compact-disc';
+                    playing = true;
+                }).catch(() => {
+                    alert("음악 파일을 찾을 수 없습니다.\n같은 폴더에 'bgm.mp3' 파일이 있는지 확인해주세요.");
                 });
             }
-            isMusicPlaying = !isMusicPlaying;
         });
 
-        // 모바일 메뉴 토글 (링크 클릭 시 자동 닫힘)
+        // 모바일 메뉴
         const btn = document.getElementById('mobile-menu-btn');
         const menu = document.getElementById('mobile-menu');
-
         const setMenu = (open) => {
-            menu.classList.toggle('hidden', !open);
+            menu.classList.toggle('open', open);
             btn.setAttribute('aria-expanded', String(open));
         };
-        btn.addEventListener('click', () => setMenu(menu.classList.contains('hidden')));
+        btn.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
         menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
 
         // 카카오톡 ID 복사
         document.getElementById('kakao-btn').addEventListener('click', async (e) => {
-            const el = e.currentTarget;
-            const orig = el.textContent;
+            const el = e.currentTarget, orig = el.textContent;
             try {
                 await navigator.clipboard.writeText('holaflower');
-                el.textContent = 'ID 복사됨! 카톡에서 검색하세요';
+                el.textContent = '복사됨! 카톡에서 검색하세요';
             } catch (_) {
                 alert('카카오톡 ID 검색: holaflower');
             }
             setTimeout(() => (el.textContent = orig), 2500);
         });
 
-        // 스크롤 애니메이션 (Intersection Observer)
-        const revealElements = document.querySelectorAll('.reveal');
+        // 스크롤 등장 + 네비 배경
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-        const revealCallback = (entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                    // 한 번 나타나면 관찰 중지 (옵션)
-                    // observer.unobserve(entry.target);
-                }
-            });
-        };
-
-        const revealOptions = {
-            threshold: 0.1, // 10% 보일 때 트리거
-            rootMargin: "0px 0px -50px 0px"
-        };
-
-        const observer = new IntersectionObserver(revealCallback, revealOptions);
-
-        revealElements.forEach(el => {
-            observer.observe(el);
-        });
-
-        // 네비게이션 바 스크롤 시 배경색 변경 (옵션)
-        window.addEventListener('scroll', () => {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('shadow-md');
-            } else {
-                navbar.classList.remove('shadow-md');
-            }
-        });
+        const nav = document.getElementById('navbar');
+        const onScroll = () => nav.classList.toggle('solid', window.scrollY > 40);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
     </script>
 </body>
 
