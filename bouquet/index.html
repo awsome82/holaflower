@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>난향가득 꽃다발 공방</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="오늘 들어온 꽃으로 직접 꽃다발을 조합하고 가격을 확인하는 꽃마을에 난향가득의 꽃다발 공방 (프로토타입)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+/* 레이아웃: 손님 화면은 왼쪽 '오늘의 꽃 선반', 오른쪽 고정 패널 '다발 미리보기 + 계산서'.
+   사장님 화면은 사입 장부 표와 주문 카드. 본 사이트의 '밤의 꽃집' 팔레트를 그대로 씁니다. */
+:root {
+  --bg: #17110d;
+  --surface: #211812;
+  --surface-2: #2c211a;
+  --line: rgba(243, 231, 211, .13);
+  --line-strong: rgba(243, 231, 211, .3);
+  --fg: #f3e7d3;
+  --fg-dim: #b5a58c;
+  --amber: #f0a948;
+  --on-amber: #2a1a05;
+  --leaf: #9cc084;
+  --alert: #ee8f6d;
+  --glow: rgba(240, 169, 72, .16);
+  --pen: "Nanum Pen Script", "Gowun Batang", cursive;
+  --serif: "Gowun Batang", "Noto Serif KR", serif;
+  --sans: "Gowun Dodum", "Noto Sans KR", system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f2eee9; --surface: #fffdf9; --surface-2: #f6efe6;
+    --line: rgba(52, 36, 22, .12); --line-strong: rgba(52, 36, 22, .28);
+    --fg: #271c13; --fg-dim: #6c5d4b; --amber: #a3600f; --on-amber: #fff8ee;
+    --leaf: #4c7a38; --alert: #b4472a; --glow: rgba(240, 169, 72, .24);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f2eee9; --surface: #fffdf9; --surface-2: #f6efe6;
+  --line: rgba(52, 36, 22, .12); --line-strong: rgba(52, 36, 22, .28);
+  --fg: #271c13; --fg-dim: #6c5d4b; --amber: #a3600f; --on-amber: #fff8ee;
+  --leaf: #4c7a38; --alert: #b4472a; --glow: rgba(240, 169, 72, .24);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+h1, h2, h3, p { margin: 0; }
+h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.3; text-wrap: balance; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.wrap { max-width: 1240px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* ---------- 상단 ---------- */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top-in { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; padding-block: 12px; }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand b { font-family: var(--pen); font-weight: 400; font-size: 28px; line-height: 1; }
+.brand b em { font-style: normal; color: var(--amber); }
+.brand span { font-size: 13px; color: var(--fg-dim); letter-spacing: .04em; }
+.tabs { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.tabs a { padding: 7px 16px; border-radius: 999px; text-decoration: none; color: var(--fg-dim); font-size: 14px; white-space: nowrap; }
+.tabs a[aria-current="page"] { background: var(--amber); color: var(--on-amber); font-weight: 700; }
+.pill { display: inline-block; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 12px; color: var(--fg-dim); white-space: nowrap; }
+
+/* ---------- 공통 ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.card-pad { padding: 20px; }
+.eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--amber); }
+.sec-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.sec-title h2 { font-size: 22px; }
+.hint { font-size: 13px; color: var(--fg-dim); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; text-decoration: none; transition: background .15s, border-color .15s, transform .15s; }
+.btn:hover { border-color: var(--amber); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--amber); color: var(--on-amber); border-color: var(--amber); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-small { padding: 6px 12px; font-size: 13px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field label, .field .lab { font-size: 13px; color: var(--fg-dim); }
+.input, select.input, textarea.input { width: 100%; padding: 9px 11px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+textarea.input { resize: vertical; min-height: 60px; }
+
+/* ---------- 손님 화면 ---------- */
+.make { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(330px, 1fr); grid-template-areas: "ai side" "shelf side" "form side"; gap: 24px 28px; padding-block: 24px 48px; align-items: start; }
+.ai { grid-area: ai; }
+.shelf { grid-area: shelf; }
+.orderbox { grid-area: form; }
+.side { grid-area: side; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 78px); display: grid; gap: 16px; max-height: calc(100vh - 100px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+
+/* 미리보기 */
+.stage { position: relative; border-radius: 14px; border: 1px solid var(--line); background: radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 65%), var(--surface); padding: 14px 14px 12px; }
+.stage svg { display: block; width: 100%; max-width: 300px; height: auto; margin-inline: auto; aspect-ratio: 400 / 440; }
+.stage-cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.stage-cap .pen { font-family: var(--pen); font-size: 24px; line-height: 1; color: var(--amber); }
+.wraps { display: flex; gap: 8px; align-items: center; }
+.wraps .lab { font-size: 13px; color: var(--fg-dim); margin-right: 2px; }
+.wraps input { position: absolute; opacity: 0; pointer-events: none; }
+.wraps label { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-strong); cursor: pointer; display: block; }
+.wraps input:checked + label { border-color: var(--amber); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--amber); }
+.wraps input:focus-visible + label { outline: 2px solid var(--amber); outline-offset: 3px; }
+.illu-note { font-size: 12px; color: var(--fg-dim); text-align: center; margin-top: 4px; }
+
+/* 계산서 */
+.bill h3 { font-size: 18px; margin-bottom: 10px; }
+.lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lines li { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line-strong); }
+.lines .sub { color: var(--fg-dim); }
+.totals { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line-strong); display: grid; gap: 4px; }
+.totals div { display: flex; justify-content: space-between; font-size: 14px; color: var(--fg-dim); }
+.totals .grand { color: var(--fg); font-size: 15px; align-items: baseline; }
+.totals .grand b { font-family: var(--serif); font-size: 26px; color: var(--amber); }
+.order-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bill .btn { width: 100%; margin-top: 14px; }
+.order-form .full { grid-column: 1 / -1; }
+.form-msg { font-size: 13px; color: var(--alert); min-height: 1em; }
+.done-box { margin-top: 14px; padding: 14px; border-radius: 10px; border: 1px solid var(--leaf); display: grid; gap: 8px; }
+.done-box b { color: var(--leaf); }
+
+/* AI 추천 */
+.ai-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 10px 12px; align-items: end; }
+.budget-out { font-family: var(--serif); font-weight: 700; color: var(--amber); }
+input[type="range"] { width: 100%; accent-color: var(--amber); }
+.recs { display: grid; gap: 12px; margin-top: 16px; }
+.rec { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 4px 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); align-items: start; }
+.rec svg { grid-row: 1 / span 5; width: 128px; height: auto; display: block; aspect-ratio: 400 / 440; }
+.rec .btn { justify-self: start; margin-top: 4px; }
+.rec ul { display: flex; flex-wrap: wrap; gap: 2px 14px; list-style: none; padding: 0 !important; }
+.rec h4 { margin: 0; font-family: var(--serif); font-size: 16px; line-height: 1.35; }
+.rec .price { font-weight: 700; color: var(--amber); }
+.rec ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--fg-dim); }
+.rec p { font-size: 13px; color: var(--fg-dim); }
+.ai-note { margin-top: 10px; font-size: 12.5px; color: var(--fg-dim); }
+
+/* 꽃 선반 */
+.group + .group { margin-top: 22px; }
+.group h3 { font-size: 15px; font-family: var(--sans); font-weight: 700; color: var(--fg-dim); margin-bottom: 10px; display: flex; gap: 8px; align-items: baseline; }
+.group h3 span { font-weight: 400; font-size: 12.5px; }
+.flowers { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 10px; }
+.fl { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; gap: 2px 10px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.fl.on { border-color: var(--amber); }
+.fl.out { opacity: .5; }
+.fl svg { grid-row: 1 / span 2; width: 52px; height: 52px; }
+.fl .nm { font-weight: 700; font-size: 14.5px; line-height: 1.3; min-width: 0; }
+.fl .nm small { display: block; font-weight: 400; font-size: 12.5px; color: var(--fg-dim); }
+.fl .meta { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 6px; }
+.fl .pr, .fl .nm small { white-space: nowrap; }
+.fl .pr { font-size: 13px; }
+.fl .left { font-size: 12px; color: var(--fg-dim); white-space: nowrap; }
+.fl .left.low { color: var(--alert); }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 999px; }
+.stepper button { width: 30px; height: 30px; border: 0; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; border-radius: 999px; }
+.stepper button:hover:not([disabled]) { background: var(--surface-2); }
+.stepper button[disabled] { opacity: .35; cursor: not-allowed; }
+.stepper output { min-width: 22px; text-align: center; font-weight: 700; }
+
+/* 모바일 하단 바 */
+.mbar { display: none; }
+
+/* ---------- 사장님 화면 ---------- */
+.seller { padding-block: 24px 48px; display: grid; gap: 28px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--fg-dim); }
+.stats b { color: var(--fg); font-family: var(--serif); font-size: 18px; margin-left: 4px; }
+.ledger-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
+.ledger-tools .field { width: 120px; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 14px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+th { font-weight: 400; font-size: 12.5px; color: var(--fg-dim); background: var(--surface-2); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+td .input { padding: 6px 8px; }
+td input[type="color"] { width: 38px; height: 32px; padding: 2px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+td.money input { text-align: right; }
+.margin-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.margin-cell.bad { color: var(--alert); }
+.orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; }
+.order { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; padding: 14px; }
+.order svg { width: 150px; height: auto; aspect-ratio: 400 / 440; border-radius: 10px; background: radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 65%), var(--surface-2); }
+.order-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.order-head b { font-family: var(--serif); font-size: 17px; }
+.status { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid currentColor; }
+.status.new { color: var(--amber); }
+.status.making { color: var(--fg); }
+.status.done { color: var(--leaf); }
+.status.canceled { color: var(--fg-dim); text-decoration: line-through; }
+.order .who { font-size: 13.5px; color: var(--fg-dim); margin-top: 4px; }
+.order ul { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: 14px; }
+.order ul li { display: flex; gap: 8px; align-items: center; }
+.order .stems { font-weight: 700; }
+.order .sum { margin-top: 8px; display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; border-top: 1px dashed var(--line-strong); padding-top: 8px; }
+.order .sum b { font-family: var(--serif); font-size: 19px; color: var(--amber); }
+.order .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.order .memo { margin-top: 6px; font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--surface-2); }
+.empty { padding: 28px; text-align: center; color: var(--fg-dim); border: 1px dashed var(--line-strong); border-radius: 12px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 14px; z-index: 50; box-shadow: 0 8px 30px rgba(0, 0, 0, .35); max-width: calc(100vw - 32px); }
+
+@media (max-width: 960px) {
+  .make { grid-template-columns: minmax(0, 1fr); grid-template-areas: none; padding-bottom: 96px; }
+  .side { display: contents; }
+  .stage { order: 0; }
+  .ai { order: 1; grid-area: auto; }
+  .shelf { order: 2; grid-area: auto; }
+  .bill { order: 3; }
+  .orderbox { order: 4; grid-area: auto; }
+  .top { position: static; }
+  .rec { grid-template-columns: 96px minmax(0, 1fr); }
+  .rec svg { width: 96px; }
+  .ai-form { grid-template-columns: 1fr 1fr; }
+  .ai-form .go { grid-column: 1 / -1; }
+  .mbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: var(--surface); border-top: 1px solid var(--line-strong); }
+  .mbar b { font-family: var(--serif); color: var(--amber); font-size: 18px; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 520px) {
+  .order-form { grid-template-columns: 1fr; }
+  .order { grid-template-columns: 1fr; }
+  .order svg { width: 100%; max-width: 220px; margin-inline: auto; }
+  .brand span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand"><b>꽃마을에 <em>난향가득</em></b><span>꽃다발 공방</span></div>
+    <nav class="tabs" aria-label="화면 선택">
+      <a href="#make" id="tab-make">꽃다발 만들기</a>
+      <a href="#seller" id="tab-seller">사장님 화면</a>
+    </nav>
+    <span class="pill">프로토타입 · 이 브라우저에만 저장</span>
+  </div>
+</header>
+
+<main>
+  <!-- 손님 화면 -->
+  <div id="view-make" class="wrap make">
+    <section class="ai card card-pad" aria-labelledby="ai-title">
+      <div class="sec-title">
+        <h2 id="ai-title">AI 추천 <span class="pill">데모</span></h2>
+        <span class="hint">오늘 들어온 꽃 안에서만 골라요</span>
+      </div>
+      <form class="ai-form" id="ai-form">
+        <div class="field">
+          <label for="ai-occ">용도</label>
+          <select class="input" id="ai-occ">
+            <option value="birthday">생일</option>
+            <option value="love">기념일·프로포즈</option>
+            <option value="congrats">승진·개업</option>
+            <option value="thanks">감사</option>
+            <option value="comfort">위로·병문안</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ai-mood">분위기</label>
+          <select class="input" id="ai-mood">
+            <option value="bright">화사하게</option>
+            <option value="romantic">로맨틱하게</option>
+            <option value="calm">차분하게</option>
+            <option value="natural">내추럴하게</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ai-budget">예산 <output class="budget-out num" id="ai-budget-out">50,000원</output></label>
+          <input type="range" id="ai-budget" min="20000" max="150000" step="5000" value="50000">
+        </div>
+        <button class="btn btn-primary go" type="submit">추천 받기</button>
+      </form>
+      <div class="recs" id="recs"></div>
+      <p class="ai-note">지금은 정해진 규칙(용도별 색, 홀수 메인 꽃, 예산 배분)으로 조합을 만듭니다. 실제 서비스에서는 AI 모델이 이 재고 목록 안에서만 고르도록 연결합니다.</p>
+    </section>
+
+    <section class="shelf" aria-labelledby="shelf-title">
+      <div class="sec-title">
+        <h2 id="shelf-title">오늘 들어온 꽃</h2>
+        <span class="hint" id="shelf-date"></span>
+      </div>
+      <div id="shelf"></div>
+    </section>
+
+    <section class="orderbox card card-pad" id="orderbox" aria-labelledby="form-title">
+      <div class="sec-title"><h2 id="form-title">주문서</h2><span class="hint">사장님이 확인 후 연락드려요</span></div>
+      <form class="order-form" id="order-form" novalidate>
+        <div class="field">
+          <label for="ord-name">주문자 이름</label>
+          <input class="input" id="ord-name" autocomplete="name" placeholder="홍길동">
+        </div>
+        <div class="field">
+          <label for="ord-phone">연락처</label>
+          <input class="input" id="ord-phone" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000">
+        </div>
+        <div class="field full">
+          <label for="ord-pickup">픽업 시간</label>
+          <select class="input" id="ord-pickup"></select>
+        </div>
+        <div class="field full">
+          <label for="ord-memo">요청 사항 (선택)</label>
+          <textarea class="input" id="ord-memo" rows="2" placeholder="메시지 카드 문구, 리본 문구 등"></textarea>
+        </div>
+        <p class="form-msg full" id="form-msg" role="alert"></p>
+        <button class="btn btn-primary full" type="submit" id="order-btn">사장님께 주문 보내기</button>
+      </form>
+      <div id="done"></div>
+    </section>
+
+    <aside class="side" aria-label="내 꽃다발">
+      <div class="stage">
+        <div id="preview"></div>
+        <div class="stage-cap">
+          <span class="pen" id="stem-count">0송이</span>
+          <div class="wraps" role="radiogroup" aria-label="포장지">
+            <span class="lab">포장</span>
+            <input type="radio" name="wrap" id="wrap-kraft" value="kraft"><label for="wrap-kraft" title="크라프트" style="background:#c9a27c"></label>
+            <input type="radio" name="wrap" id="wrap-white" value="white"><label for="wrap-white" title="화이트" style="background:#efe9df"></label>
+            <input type="radio" name="wrap" id="wrap-black" value="black"><label for="wrap-black" title="블랙" style="background:#2b2725"></label>
+            <input type="radio" name="wrap" id="wrap-pink" value="pink"><label for="wrap-pink" title="핑크" style="background:#e8c3c0"></label>
+          </div>
+        </div>
+        <p class="illu-note">그림은 조합을 보여주는 일러스트예요. 실제 꽃은 송이마다 색과 크기가 조금씩 달라요.</p>
+      </div>
+
+      <section class="bill card card-pad" id="bill" aria-labelledby="bill-title">
+        <h3 id="bill-title">계산서</h3>
+        <ul class="lines" id="lines"></ul>
+        <div class="totals" id="totals"></div>
+        <button class="btn btn-primary" type="button" data-act="to-form" id="to-form-btn">주문서 작성하기</button>
+      </section>
+    </aside>
+
+    <div class="mbar" id="mbar">
+      <span id="mbar-text">0송이</span>
+      <button class="btn btn-primary btn-small" type="button" data-act="to-bill">계산서 보기</button>
+    </div>
+  </div>
+
+  <!-- 사장님 화면 -->
+  <div id="view-seller" class="wrap seller" hidden>
+    <section aria-labelledby="ledger-title">
+      <div class="sec-title">
+        <h2 id="ledger-title">오늘의 사입</h2>
+        <span class="hint" id="ledger-date"></span>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="ledger-tools" style="margin-top:14px">
+        <div class="field">
+          <label for="markup">판매가 배율</label>
+          <input class="input num" id="markup" type="number" min="1" max="6" step="0.1" value="2.5">
+        </div>
+        <button class="btn btn-small" type="button" data-act="bulk-price">사입가 × 배율로 판매가 채우기</button>
+        <button class="btn btn-small" type="button" data-act="add-flower">+ 꽃 추가</button>
+        <button class="btn btn-small" type="button" data-act="reset" id="reset-btn">예시 데이터로 되돌리기</button>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>꽃 이름</th><th>색 이름</th><th>색</th><th>모양</th><th>분류</th><th>사입가/송이</th><th>판매가/송이</th><th>마진</th><th>재고</th><th></th></tr>
+          </thead>
+          <tbody id="ledger"></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:8px">여기서 바꾼 재고와 가격은 손님 화면에 바로 반영됩니다. 주문이 들어오면 재고가 자동으로 줄어요.</p>
+    </section>
+
+    <section aria-labelledby="orders-title">
+      <div class="sec-title">
+        <h2 id="orders-title">들어온 주문</h2>
+        <span class="hint" id="orders-count"></span>
+      </div>
+      <div class="orders" id="orders"></div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= 데이터 ================= */
+const KEY = 'holaflower-bouquet-v1';
+const CATS = { main: '메인 꽃', sub: '서브·필러', green: '그린' };
+const CAT_HINT = { main: '다발의 얼굴이 되는 꽃', sub: '볼륨과 사이를 채우는 꽃', green: '잎과 줄기' };
+const SHAPES = { rose: '장미형', round: '둥근 꽃', tulip: '튤립형', calla: '칼라형', spike: '이삭형', cluster: '송이형(수국)', filler: '잔꽃(안개꽃)', leaf: '둥근 잎', grass: '긴 잎' };
+const WRAPS = {
+  kraft: { label: '크라프트', paper: '#c9a27c', edge: '#a37c58', ribbon: '#6e4426' },
+  white: { label: '화이트', paper: '#efe9df', edge: '#cfc5b6', ribbon: '#c9a15a' },
+  black: { label: '블랙', paper: '#2b2725', edge: '#4d4642', ribbon: '#d9c39a' },
+  pink:  { label: '핑크', paper: '#e8c3c0', edge: '#c99d99', ribbon: '#a8325f' }
+};
+const SAMPLE_FLOWERS = [
+  { id: 'f1', name: '장미', colorName: '레드', color: '#b3203a', shape: 'rose', cat: 'main', cost: 1400, price: 3500, stock: 20 },
+  { id: 'f2', name: '장미', colorName: '피치', color: '#f2a98b', shape: 'rose', cat: 'main', cost: 1400, price: 3500, stock: 15 },
+  { id: 'f3', name: '튤립', colorName: '오렌지', color: '#ee7a2f', shape: 'tulip', cat: 'main', cost: 1200, price: 3000, stock: 20 },
+  { id: 'f4', name: '칼라', colorName: '마젠타', color: '#b8336a', shape: 'calla', cat: 'main', cost: 1800, price: 4500, stock: 8 },
+  { id: 'f5', name: '리시안셔스', colorName: '라임', color: '#cfe08a', shape: 'round', cat: 'main', cost: 1600, price: 4000, stock: 12 },
+  { id: 'f6', name: '카네이션', colorName: '핑크', color: '#ec8fb0', shape: 'round', cat: 'main', cost: 1000, price: 2500, stock: 25 },
+  { id: 'f7', name: '라넌큘러스', colorName: '버터', color: '#f4d77a', shape: 'round', cat: 'main', cost: 1600, price: 4000, stock: 10 },
+  { id: 'f8', name: '스토크', colorName: '화이트', color: '#f3efe6', shape: 'spike', cat: 'sub', cost: 1400, price: 3500, stock: 10 },
+  { id: 'f9', name: '수국', colorName: '블루', color: '#8fa6d8', shape: 'cluster', cat: 'sub', cost: 3200, price: 8000, stock: 5 },
+  { id: 'f10', name: '안개꽃', colorName: '화이트', color: '#fbfaf5', shape: 'filler', cat: 'sub', cost: 800, price: 2000, stock: 10 },
+  { id: 'f11', name: '유칼립투스', colorName: '실버', color: '#8aa598', shape: 'leaf', cat: 'green', cost: 800, price: 2000, stock: 15 },
+  { id: 'f12', name: '루스커스', colorName: '그린', color: '#4f7a43', shape: 'grass', cat: 'green', cost: 600, price: 1500, stock: 20 }
+];
+const SAMPLE_CART = { f2: 5, f6: 3, f5: 2, f10: 1, f11: 3 };
+
+function snapshotItems(cart, flowers) {
+  return Object.entries(cart).map(([id, count]) => {
+    const f = flowers.find(x => x.id === id);
+    return f && count > 0 ? { id, name: f.name, colorName: f.colorName, color: f.color, shape: f.shape, cat: f.cat, price: f.price, count } : null;
+  }).filter(Boolean);
+}
+function sampleOrder(flowers) {
+  const items = snapshotItems({ f1: 7, f10: 2, f11: 3, f12: 2 }, flowers);
+  const flowerTotal = items.reduce((s, i) => s + i.price * i.count, 0);
+  const fee = wrapFee(items.reduce((s, i) => s + i.count, 0));
+  return { id: 'A-1001', example: true, createdAt: new Date().toISOString(), name: '김○○', phone: '010-****-1234', pickup: '오늘 18:00', memo: '리본에 "결혼 10주년 축하해"', wrap: 'black', items, flowerTotal, wrapFee: fee, total: flowerTotal + fee, status: 'new' };
+}
+function freshState() {
+  const flowers = SAMPLE_FLOWERS.map(f => ({ ...f }));
+  return { flowers, cart: { ...SAMPLE_CART }, wrap: 'kraft', orders: [sampleOrder(flowers)], seq: 1001, markup: 2.5 };
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.flowers)) return s; }
+  } catch (e) { /* 저장소를 못 쓰면 예시로 시작 */ }
+  return freshState();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 무시 */ } }
+let state = load();
+
+/* ================= 유틸 ================= */
+const $ = s => document.querySelector(s);
+const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const f1 = n => Math.round(n * 10) / 10;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function wrapFee(n) { return n === 0 ? 0 : n <= 10 ? 3000 : n <= 20 ? 5000 : 7000; }
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rngFrom(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle(arr, rng) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+function rgb(hex) { let h = String(hex).replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function shade(hex, amt) { return '#' + rgb(hex).map(c => amt < 0 ? c * (1 + amt) : c + (255 - c) * amt).map(c => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0')).join(''); }
+function hsl(hex) {
+  const [r, g, b] = rgb(hex).map(c => c / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); const l = (mx + mn) / 2;
+  let h = 0, s = 0;
+  if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+  return { h, s, l };
+}
+const FAMILY_LABEL = { red: '레드', pink: '핑크', peach: '피치', orange: '오렌지', yellow: '옐로', green: '그린', blue: '블루', purple: '퍼플', white: '화이트' };
+function family(hex) {
+  const { h, s, l } = hsl(hex);
+  if (l > .9) return 'white';
+  if (s < .12) return l > .6 ? 'white' : 'green';
+  if (h < 15 || h >= 345) return l > .72 ? 'pink' : 'red';
+  if (h < 40) return l > .72 ? 'peach' : 'orange';
+  if (h < 68) return 'yellow';
+  if (h < 170) return 'green';
+  if (h < 260) return 'blue';
+  if (h < 300) return 'purple';
+  return 'pink';
+}
+// 받침 처리: 을/를, 으로/로, 이/가
+function hasJong(word) { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0; }
+function jongIsRieul(word) { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 8; }
+const eul = w => w + (hasJong(w) ? '을' : '를');
+const iga = w => w + (hasJong(w) ? '이' : '가');
+const ro = w => w + (hasJong(w) && !jongIsRieul(w) ? '으로' : '로');
+const label = f => `${f.colorName ? f.colorName + ' ' : ''}${f.name}`;
+const available = f => Math.max(0, (f.stock || 0) - (state.cart[f.id] || 0));
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+
+/* ================= 꽃 그리기 ================= */
+function headSVG(shape, x, y, s, c, rot, rng) {
+  const d1 = shade(c, -.18), d2 = shade(c, -.36), l1 = shade(c, .2);
+  const T = `transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)})"`;
+  switch (shape) {
+    case 'rose':
+      return `<g ${T}><circle r="${f1(s)}" fill="${d1}"/><circle r="${f1(s * .84)}" fill="${c}"/>` +
+        `<path d="M${f1(-s * .55)} ${f1(s * .1)}A${f1(s * .55)} ${f1(s * .55)} 0 1 1 ${f1(s * .42)} ${f1(s * .36)}" fill="none" stroke="${d1}" stroke-width="${f1(s * .1)}" stroke-linecap="round"/>` +
+        `<path d="M${f1(-s * .28)} 0A${f1(s * .3)} ${f1(s * .3)} 0 1 1 ${f1(s * .2)} ${f1(s * .2)}" fill="none" stroke="${d2}" stroke-width="${f1(s * .09)}" stroke-linecap="round"/>` +
+        `<circle r="${f1(s * .11)}" fill="${d2}"/></g>`;
+    case 'round': {
+      let p = '';
+      for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; p += `<circle cx="${f1(Math.cos(a) * s * .58)}" cy="${f1(Math.sin(a) * s * .58)}" r="${f1(s * .44)}" fill="${c}" stroke="${d1}" stroke-width="1"/>`; }
+      for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + .5; p += `<circle cx="${f1(Math.cos(a) * s * .27)}" cy="${f1(Math.sin(a) * s * .27)}" r="${f1(s * .3)}" fill="${l1}" stroke="${d1}" stroke-width=".8"/>`; }
+      return `<g ${T}>${p}<circle r="${f1(s * .14)}" fill="${d2}"/></g>`;
+    }
+    case 'tulip':
+      return `<g ${T}><path d="M${f1(-.62 * s)} ${f1(-.05 * s)}Q${f1(-.66 * s)} ${f1(-.95 * s)} ${f1(-.2 * s)} ${f1(-.88 * s)}Q0 ${f1(-.45 * s)} ${f1(.2 * s)} ${f1(-.88 * s)}Q${f1(.66 * s)} ${f1(-.95 * s)} ${f1(.62 * s)} ${f1(-.05 * s)}Q${f1(.55 * s)} ${f1(.92 * s)} 0 ${f1(.92 * s)}Q${f1(-.55 * s)} ${f1(.92 * s)} ${f1(-.62 * s)} ${f1(-.05 * s)}Z" fill="${c}" stroke="${d1}" stroke-width="1.2"/>` +
+        `<path d="M0 ${f1(-.5 * s)}Q${f1(.1 * s)} ${f1(.2 * s)} 0 ${f1(.85 * s)}" stroke="${d1}" stroke-width="1.4" fill="none"/></g>`;
+    case 'calla':
+      return `<g ${T}><path d="M0 ${f1(s)}Q${f1(-.75 * s)} ${f1(.1 * s)} ${f1(-.5 * s)} ${f1(-.72 * s)}Q${f1(.05 * s)} ${f1(-1.05 * s)} ${f1(.6 * s)} ${f1(-.78 * s)}Q${f1(.35 * s)} ${f1(-.15 * s)} 0 ${f1(s)}Z" fill="${c}" stroke="${d1}" stroke-width="1.2"/>` +
+        `<path d="M${f1(.02 * s)} ${f1(.35 * s)}L${f1(.1 * s)} ${f1(-.42 * s)}" stroke="#e8c547" stroke-width="${f1(.16 * s)}" stroke-linecap="round"/></g>`;
+    case 'spike': {
+      let p = '';
+      for (let k = 0; k < 6; k++) { p += `<circle cx="${f1((k % 2 ? 1 : -1) * .12 * s)}" cy="${f1(.7 * s - k * .34 * s)}" r="${f1((.4 - k * .035) * s)}" fill="${k % 2 ? l1 : c}" stroke="${d1}" stroke-width=".9"/>`; }
+      return `<g ${T}>${p}</g>`;
+    }
+    case 'cluster': {
+      let p = `<circle r="${f1(s)}" fill="${d1}"/>`;
+      for (let k = 0; k < 26; k++) {
+        const a = rng() * Math.PI * 2, r = Math.sqrt(rng()) * s * .82;
+        p += `<circle cx="${f1(Math.cos(a) * r)}" cy="${f1(Math.sin(a) * r)}" r="${f1(s * .2)}" fill="${rng() < .5 ? c : l1}" stroke="${d1}" stroke-width=".7"/>`;
+      }
+      return `<g ${T}>${p}</g>`;
+    }
+    default:
+      return `<g ${T}><circle r="${f1(s)}" fill="${c}" stroke="${d1}"/></g>`;
+  }
+}
+function fillerSVG(x, y, s, c, rng) {
+  let p = '';
+  for (let k = 0; k < 9; k++) { const a = rng() * Math.PI * 2, r = Math.sqrt(rng()) * s; p += `<path d="M${f1(x)} ${f1(y)}L${f1(x + Math.cos(a) * r)} ${f1(y + Math.sin(a) * r)}" stroke="#93a982" stroke-width=".8"/>`; }
+  for (let k = 0; k < 18; k++) { const a = rng() * Math.PI * 2, r = Math.sqrt(rng()) * s; p += `<circle cx="${f1(x + Math.cos(a) * r)}" cy="${f1(y + Math.sin(a) * r)}" r="${f1(1.8 + rng() * 1.4)}" fill="${c}" stroke="${shade(c, -.2)}" stroke-width=".5"/>`; }
+  return p;
+}
+function leafSVG(x, y, len, c, rot) {
+  let p = `<path d="M0 0L${f1(len)} 0" stroke="${shade(c, -.35)}" stroke-width="1.6"/>`;
+  for (let k = 1; k <= 5; k++) { const side = k % 2 ? 1 : -1; p += `<circle cx="${f1(len * k / 5.4)}" cy="${f1(side * len * .1)}" r="${f1(len * .13)}" fill="${k % 2 ? c : shade(c, -.12)}" stroke="${shade(c, -.25)}" stroke-width=".7"/>`; }
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)})">${p}</g>`;
+}
+function grassSVG(x, y, len, c, rot) {
+  let p = '';
+  [-16, 0, 16].forEach((a, i) => {
+    p += `<g transform="rotate(${a})"><ellipse cx="${f1(len * .5)}" cy="0" rx="${f1(len * .5)}" ry="${f1(len * .11)}" fill="${i === 1 ? c : shade(c, -.12)}" stroke="${shade(c, -.3)}" stroke-width=".7"/><path d="M0 0L${f1(len * .95)} 0" stroke="${shade(c, -.3)}" stroke-width=".7"/></g>`;
+  });
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)})">${p}</g>`;
+}
+const HEAD_SIZE = { rose: 21, round: 20, tulip: 19, calla: 20, spike: 15, cluster: 34 };
+
+/* 단일 꽃 아이콘 (선반용) */
+function iconSVG(f) {
+  const rng = rngFrom(hashStr(f.id + f.color));
+  let body;
+  if (f.shape === 'leaf') body = leafSVG(-4, 22, 40, f.color, -70);
+  else if (f.shape === 'grass') body = grassSVG(0, 24, 46, f.color, -90);
+  else if (f.shape === 'filler') body = fillerSVG(0, 0, 22, f.color, rng);
+  else body = headSVG(f.shape, 0, f.shape === 'spike' ? 4 : 0, f.shape === 'cluster' ? 25 : f.shape === 'spike' ? 22 : 22, f.color, f.shape === 'calla' ? -12 : 0, rng);
+  return `<svg viewBox="-30 -30 60 60" aria-hidden="true">${body}</svg>`;
+}
+
+/* 꽃다발 전체 (미리보기 · 추천 · 주문 카드 공용) */
+function bouquetSVG(items, wrapKey, title) {
+  const W = WRAPS[wrapKey] || WRAPS.kraft;
+  const cx = 200;
+  const stems = [];
+  items.forEach(it => { for (let k = 0; k < it.count; k++) stems.push(it); });
+  const t = esc(title || '꽃다발 미리보기');
+  if (!stems.length) {
+    return `<svg viewBox="0 0 400 440" role="img" aria-label="${t}"><circle cx="200" cy="190" r="110" fill="none" stroke="var(--line-strong)" stroke-dasharray="6 8" stroke-width="2"/>` +
+      `<text x="200" y="186" text-anchor="middle" fill="var(--fg-dim)" font-size="17" font-family="Gowun Dodum, sans-serif">꽃을 담으면</text>` +
+      `<text x="200" y="212" text-anchor="middle" fill="var(--fg-dim)" font-size="17" font-family="Gowun Dodum, sans-serif">여기에 다발이 그려져요</text></svg>`;
+  }
+  const rng = rngFrom(hashStr(items.map(i => i.id + ':' + i.count).join('|') + wrapKey));
+  const greens = stems.filter(s => s.shape === 'leaf' || s.shape === 'grass');
+  const fillers = stems.filter(s => s.shape === 'filler');
+  const heads = shuffle(stems.filter(s => !['leaf', 'grass', 'filler'].includes(s.shape)), rng);
+  const weight = heads.reduce((a, s) => a + (s.shape === 'cluster' ? 3 : 1), 0) + fillers.length * .7 + greens.length * .25;
+  const R = Math.min(136, 34 + 15 * Math.sqrt(Math.max(1, weight)));
+  const cy = 205 - .175 * R;            // 작은 다발도 화면 가운데에 오도록
+  const tipY = Math.min(426, cy + R * 1.3 + 60);
+  let out = `<svg viewBox="0 0 400 440" role="img" aria-label="${t}">`;
+  // 뒤 포장지
+  const back = (pad) => `M${cx} ${tipY}L${f1(cx - R - 36 - pad)} ${f1(cy - R * .3)}Q${f1(cx - R * .62)} ${f1(cy - R - 44 - pad)} ${cx} ${f1(cy - R * .95 - 30 - pad)}Q${f1(cx + R * .62)} ${f1(cy - R - 44 - pad)} ${f1(cx + R + 36 + pad)} ${f1(cy - R * .3)}Z`;
+  out += `<path d="${back(5)}" fill="${W.edge}"/><path d="${back(0)}" fill="${W.paper}"/>`;
+  // 그린: 가장자리에서 바깥으로
+  greens.forEach((g, i) => {
+    const a = -Math.PI / 2 + ((i + .5) / greens.length - .5) * Math.PI * 1.9 + (rng() - .5) * .25;
+    const r0 = R * (.35 + rng() * .25);
+    const x = cx + Math.cos(a) * r0, y = cy + Math.sin(a) * r0 * .8;
+    const len = Math.max(26, Math.min(56, R * .62)) * (.85 + rng() * .3);
+    const deg = a * 180 / Math.PI;
+    out += g.shape === 'leaf' ? leafSVG(x, y, len, g.color, deg) : grassSVG(x, y, len * 1.1, g.color, deg);
+  });
+  // 잔꽃: 사이사이
+  fillers.forEach((f, i) => {
+    const a = i * 2.39996 + 1.2 + rng() * .5, r = R * (.45 + rng() * .5);
+    out += fillerSVG(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .78, 22, f.color, rng);
+  });
+  // 메인 꽃: 해바라기 배열(황금각) + 앞쪽이 위에 오도록 y 정렬
+  const placed = heads.map((s, i) => {
+    const tt = (i + .5) / heads.length, r = R * .84 * Math.sqrt(tt), a = i * 2.39996 + rng() * .35;
+    return { s, x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) * .78 - (1 - tt) * 8 };
+  }).sort((p, q) => p.y - q.y);
+  placed.forEach(p => {
+    const size = (HEAD_SIZE[p.s.shape] || 20) * (.92 + rng() * .16);
+    const rot = p.s.shape === 'calla' || p.s.shape === 'tulip' || p.s.shape === 'spike' ? (p.x - cx) * .35 + (rng() - .5) * 20 : rng() * 360;
+    out += headSVG(p.s.shape, p.x, p.y, size, p.s.color, rot, rng);
+  });
+  // 앞 포장지 (두 장 겹침) + 리본
+  const fy = cy + R * .5;
+  out += `<path d="M${cx} ${tipY + 4}L${f1(cx - R - 22)} ${f1(fy - 6)}Q${f1(cx - R * .35)} ${f1(fy + R * .22)} ${cx + 22} ${f1(fy + 4)}Z" fill="${W.paper}" stroke="${W.edge}" stroke-width="1.5"/>`;
+  out += `<path d="M${cx} ${tipY + 4}L${f1(cx + R + 22)} ${f1(fy - 6)}Q${f1(cx + R * .35)} ${f1(fy + R * .22)} ${cx - 22} ${f1(fy + 4)}Z" fill="${shade(W.paper, -.06)}" stroke="${W.edge}" stroke-width="1.5"/>`;
+  const ry = fy + (tipY - fy) * .42;
+  out += `<g fill="${W.ribbon}" stroke="${shade(W.ribbon, -.25)}" stroke-width="1"><path d="M${cx - 4} ${f1(ry + 4)}Q${cx - 16} ${f1(ry + 30)} ${cx - 26} ${f1(ry + 44)}L${cx - 16} ${f1(ry + 44)}Q${cx - 8} ${f1(ry + 26)} ${cx + 2} ${f1(ry + 6)}Z"/><path d="M${cx + 4} ${f1(ry + 4)}Q${cx + 14} ${f1(ry + 28)} ${cx + 22} ${f1(ry + 46)}L${cx + 30} ${f1(ry + 42)}Q${cx + 16} ${f1(ry + 22)} ${cx + 6} ${f1(ry + 4)}Z"/>` +
+    `<ellipse cx="${cx - 16}" cy="${f1(ry)}" rx="17" ry="9" transform="rotate(-18 ${cx - 16} ${f1(ry)})"/><ellipse cx="${cx + 16}" cy="${f1(ry)}" rx="17" ry="9" transform="rotate(18 ${cx + 16} ${f1(ry)})"/><circle cx="${cx}" cy="${f1(ry + 1)}" r="6"/></g>`;
+  return out + '</svg>';
+}
+
+/* ================= AI 추천 (데모: 규칙 기반) ================= */
+const OCC = {
+  birthday: { label: '생일', fam: { orange: 3, yellow: 3, peach: 2, pink: 2, red: 1 }, why: '밝고 경쾌한 색' },
+  love: { label: '기념일·프로포즈', fam: { red: 3, pink: 3, peach: 2, purple: 1 }, why: '붉은 계열과 핑크' },
+  congrats: { label: '승진·개업', fam: { yellow: 3, orange: 3, red: 2, white: 1 }, why: '선명한 노랑과 주황' },
+  thanks: { label: '감사', fam: { pink: 3, peach: 3, yellow: 2, purple: 2, white: 1 }, why: '부드러운 파스텔' },
+  comfort: { label: '위로·병문안', fam: { white: 3, green: 3, blue: 2, purple: 1 }, why: '차분한 흰색과 그린' }
+};
+const MOOD = {
+  bright: { label: '화사한', sat: 1, mix: true },
+  romantic: { label: '로맨틱한', fam: { pink: 2, red: 1, peach: 1, purple: 1 }, shape: { rose: 1.5 } },
+  calm: { label: '차분한', sat: -1, fam: { white: 2, green: 1, blue: 1 } },
+  natural: { label: '내추럴한', shape: { spike: 1, round: .6, filler: 1 }, greens: true }
+};
+function score(f, occ, mood, rng) {
+  const fam = family(f.color), { s } = hsl(f.color), m = MOOD[mood];
+  let sc = OCC[occ].fam[fam] || 0;
+  if (m.fam) sc += m.fam[fam] || 0;
+  if (m.shape) sc += m.shape[f.shape] || 0;
+  if (m.sat === 1) sc += s * 1.5;
+  if (m.sat === -1) sc += (1 - s) * 1.5;
+  return sc + rng() * .6;
+}
+function allocate(parts, budget) {
+  const items = parts.map(p => ({ ...p, n: 0 }));
+  const est = budget - 5000;
+  items.forEach(it => {
+    let n = Math.floor(it.ratio * est / it.f.price);
+    if (it.role === 'focal') { n = Math.max(3, n); if (n % 2 === 0) n -= 1; }
+    else n = Math.max(1, n);
+    it.n = Math.min(n, it.f.stock);
+  });
+  const count = () => items.reduce((s, i) => s + i.n, 0);
+  const total = () => items.reduce((s, i) => s + i.n * i.f.price, 0) + wrapFee(count());
+  let guard = 0;
+  while (total() > budget && guard++ < 300) {
+    const c = items.filter(i => i.role === 'focal' ? i.n > 1 : i.n > 0).sort((a, b) => b.n * b.f.price - a.n * a.f.price)[0];
+    if (!c) break;
+    c.n -= c.role === 'focal' && c.n >= 3 ? 2 : 1;
+  }
+  const order = ['focal', 'second', 'green', 'filler', 'green2'];
+  let idx = 0, misses = 0;
+  guard = 0;
+  while (misses < order.length && guard++ < 300) {
+    const it = items.find(i => i.role === order[idx % order.length]); idx++;
+    if (!it) { misses++; continue; }
+    const step = it.role === 'focal' ? 2 : 1;
+    if (it.n + step <= it.f.stock) { it.n += step; if (total() <= budget) { misses = 0; continue; } it.n -= step; }
+    misses++;
+  }
+  const kept = items.filter(i => i.n > 0);
+  return { items: kept, total: total(), stems: count() };
+}
+function recommend(occ, mood, budget) {
+  const rng = rngFrom(hashStr(occ + mood + budget + state.flowers.map(f => f.id + f.stock).join()));
+  const fl = state.flowers.filter(f => f.stock > 0 && f.price > 0);
+  const scored = f => ({ f, sc: score(f, occ, mood, rng) });
+  const mains = fl.filter(f => f.cat === 'main').map(scored).sort((a, b) => b.sc - a.sc);
+  const fillers = fl.filter(f => f.shape === 'filler' || f.shape === 'spike').map(scored).sort((a, b) => b.sc - a.sc);
+  const greens = fl.filter(f => f.cat === 'green').map(scored).sort((a, b) => b.sc - a.sc);
+  const m = MOOD[mood], o = OCC[occ];
+  const results = [], seen = new Set();
+  for (let v = 0; v < 3 && v < mains.length; v++) {
+    const focal = mains[v].f;
+    const pool = [...mains.filter(x => x.f.id !== focal.id), ...fl.filter(f => f.shape === 'cluster').map(scored)]
+      .map(x => ({ ...x, sc: x.sc + (m.mix ? (family(x.f.color) !== family(focal.color) ? 1 : 0) : (family(x.f.color) === family(focal.color) ? .6 : 0)) }))
+      .sort((a, b) => b.sc - a.sc);
+    const second = (pool[v === 2 && pool.length > 1 ? 1 : 0] || {}).f;
+    const filler = (fillers.find(x => !second || x.f.id !== second.id) || {}).f;
+    const green = (greens[0] || {}).f, green2 = m.greens ? (greens[1] || {}).f : null;
+    const nat = mood === 'natural';
+    const parts = [
+      { f: focal, role: 'focal', ratio: nat ? .36 : .46 },
+      second && { f: second, role: 'second', ratio: nat ? .2 : .24 },
+      filler && { f: filler, role: 'filler', ratio: nat ? .16 : .12 },
+      green && { f: green, role: 'green', ratio: nat ? .16 : .18 },
+      green2 && { f: green2, role: 'green2', ratio: .12 }
+    ].filter(Boolean);
+    const r = allocate(parts, budget);
+    if (!r.items.length || r.total > budget) continue;
+    const sig = r.items.map(i => i.f.id + i.n).sort().join();
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+    const sec = r.items.find(i => i.role === 'second');
+    const rest = r.items.filter(i => i.role === 'filler' || i.role.startsWith('green')).map(i => i.f.name);
+    let why = `${o.label}에는 ${iga(o.why)} 잘 어울려요. 오늘 들어온 ${eul(label(focal))} 중심에 두고`;
+    why += sec ? ` ${ro(label(sec.f))} 색을 받쳤어요.` : ' 한 가지 색으로 깔끔하게 모았어요.';
+    if (rest.length) why += ` ${ro(rest.join('·'))} 사이와 가장자리를 채웠어요.`;
+    why += ` 메인 꽃은 ${r.items[0].n}송이, 홀수로 넣어 모양이 자연스러워요.`;
+    if (budget - r.total >= 3000) why += ` 예산보다 ${won(budget - r.total)} 적게 나왔어요.`;
+    results.push({ title: `${label(focal)} 중심의 ${m.label} 다발`, items: r.items, total: r.total, stems: r.stems, why });
+  }
+  return results;
+}
+
+/* ================= 렌더: 손님 화면 ================= */
+function cartItems() { return snapshotItems(state.cart, state.flowers); }
+function cartTotals() {
+  const items = cartItems();
+  const stems = items.reduce((s, i) => s + i.count, 0);
+  const flowerTotal = items.reduce((s, i) => s + i.count * i.price, 0);
+  const fee = wrapFee(stems);
+  return { items, stems, flowerTotal, fee, total: flowerTotal + fee };
+}
+function renderShelf() {
+  const groups = ['main', 'sub', 'green'].map(cat => {
+    const list = state.flowers.filter(f => f.cat === cat);
+    if (!list.length) return '';
+    const cards = list.map(f => {
+      const n = state.cart[f.id] || 0, left = available(f);
+      const out = f.stock <= 0;
+      return `<div class="fl${n ? ' on' : ''}${out ? ' out' : ''}">
+        ${iconSVG(f)}
+        <div class="nm">${esc(f.name)}<small>${esc(f.colorName || SHAPES[f.shape] || '')}</small></div>
+        <div class="nm"><span class="pr num">${won(f.price)}</span> <small style="display:inline">/송이</small></div>
+        <div class="meta">
+          <span class="left num${left <= 3 ? ' low' : ''}">${out ? '오늘 품절' : `남은 ${left}송이`}</span>
+          <span class="stepper">
+            <button type="button" data-act="dec" data-id="${esc(f.id)}" aria-label="${esc(label(f))} 한 송이 빼기" ${n ? '' : 'disabled'}>−</button>
+            <output class="num" aria-label="${esc(label(f))} 담은 수">${n}</output>
+            <button type="button" data-act="inc" data-id="${esc(f.id)}" aria-label="${esc(label(f))} 한 송이 담기" ${left > 0 ? '' : 'disabled'}>+</button>
+          </span>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="group"><h3>${CATS[cat]} <span>${CAT_HINT[cat]}</span></h3><div class="flowers">${cards}</div></div>`;
+  }).join('');
+  $('#shelf').innerHTML = groups || '<div class="empty">오늘 등록된 꽃이 없어요. 사장님 화면에서 사입한 꽃을 입력해 주세요.</div>';
+}
+function renderSide() {
+  const t = cartTotals();
+  $('#preview').innerHTML = bouquetSVG(t.items, state.wrap, '내가 고른 꽃다발 미리보기');
+  $('#stem-count').textContent = `${t.stems}송이`;
+  const wrapInput = document.getElementById('wrap-' + state.wrap);
+  if (wrapInput) wrapInput.checked = true;
+  $('#lines').innerHTML = t.items.length
+    ? t.items.map(i => `<li><span class="dot" style="background:${esc(i.color)}"></span><span>${esc(label(i))} <span class="sub num">${i.count}송이</span></span><span class="num">${won(i.count * i.price)}</span></li>`).join('')
+    : '<li><span></span><span class="sub">아직 담은 꽃이 없어요.</span><span></span></li>';
+  $('#totals').innerHTML = `
+    <div><span>꽃값</span><span class="num">${won(t.flowerTotal)}</span></div>
+    <div><span>포장비 (${WRAPS[state.wrap].label}, ${t.stems <= 10 ? '10송이 이하' : t.stems <= 20 ? '11~20송이' : '21송이 이상'})</span><span class="num">${won(t.fee)}</span></div>
+    <div class="grand"><span>합계</span><b class="num">${won(t.total)}</b></div>`;
+  $('#mbar-text').innerHTML = `${t.stems}송이 · <b class="num">${won(t.total)}</b>`;
+  $('#order-btn').disabled = t.stems < 3;
+  $('#to-form-btn').disabled = t.stems < 3;
+  if (!$('#form-msg').dataset.sticky) $('#form-msg').textContent = t.stems && t.stems < 3 ? '3송이 이상 담으면 주문할 수 있어요.' : '';
+}
+function renderMake() { renderShelf(); renderSide(); }
+function renderRecs(list) {
+  const box = $('#recs');
+  if (!list.length) { box.innerHTML = '<div class="empty">이 예산으로는 오늘 재고에서 다발을 만들기 어려워요. 예산을 조금 올려 보세요.</div>'; return; }
+  box.innerHTML = list.map((r, i) => {
+    const items = r.items.map(x => ({ id: x.f.id, name: x.f.name, colorName: x.f.colorName, color: x.f.color, shape: x.f.shape, count: x.n }));
+    return `<article class="rec">
+      ${bouquetSVG(items, state.wrap, r.title)}
+      <h4>${esc(r.title)}</h4>
+      <span class="price num">${won(r.total)} · ${r.stems}송이</span>
+      <ul>${r.items.map(x => `<li>${esc(label(x.f))} ${x.n}송이</li>`).join('')}</ul>
+      <p>${esc(r.why)}</p>
+      <button class="btn btn-small" type="button" data-act="use-rec" data-i="${i}">이 조합으로 담기</button>
+    </article>`;
+  }).join('');
+  box._recs = list;
+}
+
+/* ================= 렌더: 사장님 화면 ================= */
+function renderStats() {
+  const fl = state.flowers;
+  const stems = fl.reduce((s, f) => s + (+f.stock || 0), 0);
+  const cost = fl.reduce((s, f) => s + (+f.stock || 0) * (+f.cost || 0), 0);
+  const sales = fl.reduce((s, f) => s + (+f.stock || 0) * (+f.price || 0), 0);
+  $('#stats').innerHTML = `<span>품목<b class="num">${fl.length}종</b></span><span>남은 재고<b class="num">${stems}송이</b></span><span>재고 사입가<b class="num">${won(cost)}</b></span><span>전부 팔면<b class="num">${won(sales)}</b></span>`;
+}
+function marginCell(f) {
+  if (!f.price) return '<td class="margin-cell bad">-</td>';
+  const m = Math.round((f.price - f.cost) / f.price * 100);
+  return `<td class="margin-cell${m < 40 ? ' bad' : ''}" data-margin="${esc(f.id)}">${m}%</td>`;
+}
+function renderLedger() {
+  const opt = (obj, v) => Object.entries(obj).map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${l}</option>`).join('');
+  $('#ledger').innerHTML = state.flowers.map(f => `<tr data-id="${esc(f.id)}">
+    <td><input class="input" id="nm-${esc(f.id)}" data-field="name" value="${esc(f.name)}" aria-label="꽃 이름"></td>
+    <td><input class="input" data-field="colorName" value="${esc(f.colorName)}" aria-label="색 이름" style="width:90px"></td>
+    <td><input type="color" data-field="color" value="${esc(f.color)}" aria-label="색"></td>
+    <td><select class="input" data-field="shape" aria-label="모양">${opt(SHAPES, f.shape)}</select></td>
+    <td><select class="input" data-field="cat" aria-label="분류">${opt(CATS, f.cat)}</select></td>
+    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="cost" value="${+f.cost || 0}" aria-label="사입가" style="width:100px"></td>
+    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="price" value="${+f.price || 0}" aria-label="판매가" style="width:100px"></td>
+    ${marginCell(f)}
+    <td><input class="input num" type="number" min="0" step="1" data-field="stock" value="${+f.stock || 0}" aria-label="재고" style="width:76px"></td>
+    <td><button class="btn btn-small" type="button" data-act="del-flower" data-id="${esc(f.id)}">삭제</button></td>
+  </tr>`).join('');
+  renderStats();
+}
+const STATUS = { new: '새 주문', making: '제작 중', done: '픽업 완료', canceled: '취소됨' };
+function renderOrders() {
+  const list = [...state.orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const active = list.filter(o => o.status === 'new' || o.status === 'making').length;
+  $('#orders-count').textContent = `처리할 주문 ${active}건`;
+  $('#orders').innerHTML = list.length ? list.map(o => {
+    const stems = o.items.reduce((s, i) => s + i.count, 0);
+    const time = new Date(o.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    const acts = o.status === 'new' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="making">제작 시작</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>`
+      : o.status === 'making' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="done">픽업 완료</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>` : '';
+    return `<article class="order card">
+      ${bouquetSVG(o.items, o.wrap, `주문 ${o.id} 꽃다발`)}
+      <div style="min-width:0">
+        <div class="order-head"><b>${esc(o.id)}${o.example ? ' <span class="pill">예시</span>' : ''}</b><span class="status ${o.status}">${STATUS[o.status]}</span></div>
+        <div class="who">${esc(o.name)} · ${esc(o.phone)} · 픽업 ${esc(o.pickup)} · 접수 ${time}</div>
+        ${o.memo ? `<div class="memo">${esc(o.memo)}</div>` : ''}
+        <ul>${o.items.map(i => `<li><span class="dot" style="background:${esc(i.color)}"></span>${esc(label(i))} <span class="stems num">${i.count}송이</span></li>`).join('')}</ul>
+        <div class="sum"><span>총 <b class="num" style="font-family:var(--sans);font-size:15px;color:var(--fg)">${stems}송이</b> · ${esc(WRAPS[o.wrap]?.label || '')} 포장</span><b class="num">${won(o.total)}</b></div>
+        <div class="acts">${acts}</div>
+      </div>
+    </article>`;
+  }).join('') : '<div class="empty">아직 들어온 주문이 없어요. 손님 화면에서 다발을 만들어 주문을 보내 보세요.</div>';
+}
+function renderSeller() { $('#markup').value = state.markup ?? 2.5; renderLedger(); renderOrders(); }
+
+/* ================= 화면 전환 ================= */
+function route() {
+  const seller = location.hash === '#seller';
+  $('#view-make').hidden = seller;
+  $('#view-seller').hidden = !seller;
+  $('#tab-make').setAttribute('aria-current', seller ? 'false' : 'page');
+  $('#tab-seller').setAttribute('aria-current', seller ? 'page' : 'false');
+  if (seller) renderSeller(); else renderMake();
+}
+window.addEventListener('hashchange', route);
+
+/* ================= 이벤트 ================= */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act, id = b.dataset.id;
+  if (act === 'inc' || act === 'dec') {
+    const f = state.flowers.find(x => x.id === id); if (!f) return;
+    const n = state.cart[id] || 0;
+    if (act === 'inc' && available(f) > 0) state.cart[id] = n + 1;
+    if (act === 'dec' && n > 0) { if (n === 1) delete state.cart[id]; else state.cart[id] = n - 1; }
+    $('#done').innerHTML = ''; delete $('#form-msg').dataset.sticky;
+    save(); renderMake();
+    const again = document.querySelector(`[data-act="${act}"][data-id="${CSS.escape(id)}"]`);
+    if (again && !again.disabled) again.focus();
+  } else if (act === 'use-rec') {
+    const r = ($('#recs')._recs || [])[+b.dataset.i]; if (!r) return;
+    state.cart = {};
+    r.items.forEach(x => { const f = state.flowers.find(y => y.id === x.f.id); if (f) state.cart[f.id] = Math.min(x.n, f.stock); });
+    $('#done').innerHTML = '';
+    save(); renderMake();
+    toast('추천 조합을 담았어요. 송이 수를 자유롭게 바꿔 보세요.');
+    if (window.matchMedia('(max-width: 960px)').matches) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (act === 'to-form') {
+    $('#orderbox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => $('#ord-name').focus({ preventScroll: true }), 400);
+  } else if (act === 'to-bill') {
+    $('#bill').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (act === 'goto-seller') {
+    location.hash = '#seller';
+  } else if (act === 'status') {
+    const o = state.orders.find(x => x.id === b.dataset.o); if (!o) return;
+    const next = b.dataset.s;
+    if (next === 'canceled' && !o.example) {
+      o.items.forEach(i => { const f = state.flowers.find(x => x.id === i.id); if (f) f.stock = (+f.stock || 0) + i.count; });
+    }
+    o.status = next; save(); renderSeller();
+    toast(next === 'making' ? `${o.id} 제작을 시작했어요.` : next === 'done' ? `${o.id} 픽업 완료로 바꿨어요.` : `${o.id} 주문을 취소하고 재고를 되돌렸어요.`);
+  } else if (act === 'bulk-price') {
+    const mk = parseFloat($('#markup').value) || 2.5; state.markup = mk;
+    state.flowers.forEach(f => { f.price = Math.round((+f.cost || 0) * mk / 100) * 100; });
+    save(); renderLedger(); toast(`사입가의 ${mk}배로 판매가를 채웠어요.`);
+  } else if (act === 'add-flower') {
+    const nf = { id: 'f' + Date.now().toString(36), name: '새 꽃', colorName: '', color: '#e9a0b5', shape: 'round', cat: 'main', cost: 1000, price: 2500, stock: 10 };
+    state.flowers.push(nf); save(); renderLedger();
+    const el = document.getElementById('nm-' + nf.id); if (el) { el.focus(); el.select(); }
+  } else if (act === 'del-flower') {
+    if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = '한 번 더'; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ''; b.textContent = '삭제'; } }, 3000); return; }
+    state.flowers = state.flowers.filter(f => f.id !== id); delete state.cart[id];
+    save(); renderLedger(); toast('목록에서 뺐어요.');
+  } else if (act === 'reset') {
+    if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = '한 번 더 누르면 되돌려요'; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ''; b.textContent = '예시 데이터로 되돌리기'; } }, 3000); return; }
+    state = freshState(); save(); b.dataset.armed = ''; b.textContent = '예시 데이터로 되돌리기'; renderSeller(); toast('예시 데이터로 되돌렸어요.');
+  }
+});
+
+document.getElementById('ledger').addEventListener('change', e => {
+  const el = e.target, tr = el.closest('tr'); if (!tr || !el.dataset.field) return;
+  const f = state.flowers.find(x => x.id === tr.dataset.id); if (!f) return;
+  const k = el.dataset.field;
+  f[k] = ['cost', 'price', 'stock'].includes(k) ? Math.max(0, Math.round(+el.value || 0)) : el.value;
+  if (k === 'stock' && (state.cart[f.id] || 0) > f.stock) { if (f.stock > 0) state.cart[f.id] = f.stock; else delete state.cart[f.id]; }
+  save();
+  const mc = tr.querySelector('[data-margin]') || tr.querySelector('.margin-cell');
+  if (mc) mc.outerHTML = marginCell(f);
+  renderStats();
+});
+$('#markup').addEventListener('change', e => { state.markup = parseFloat(e.target.value) || 2.5; save(); });
+
+document.querySelectorAll('input[name="wrap"]').forEach(r => r.addEventListener('change', () => { state.wrap = r.value; save(); renderSide(); }));
+
+const budget = $('#ai-budget');
+budget.addEventListener('input', () => { $('#ai-budget-out').textContent = won(+budget.value); });
+$('#ai-form').addEventListener('submit', e => {
+  e.preventDefault();
+  renderRecs(recommend($('#ai-occ').value, $('#ai-mood').value, +budget.value));
+});
+
+function pickupOptions() {
+  const now = new Date(), opts = [];
+  const fmt = (d, day) => `${day} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  // 영업시간 10:00~20:00 (예시). 지금부터 1시간 뒤부터 고를 수 있어요.
+  let first = new Date(now.getTime() + 60 * 60000); first.setMinutes(first.getMinutes() < 30 ? 30 : 60, 0, 0);
+  const open = new Date(now); open.setHours(10, 0, 0, 0);
+  if (first < open) first = open;
+  for (let d = new Date(first), i = 0; i < 6 && d.getDate() === now.getDate() && (d.getHours() < 20 || (d.getHours() === 20 && d.getMinutes() === 0)); i++, d = new Date(d.getTime() + 60 * 60000)) opts.push(fmt(d, '오늘'));
+  [11, 14, 17].forEach(h => { const d = new Date(now); d.setDate(d.getDate() + 1); d.setHours(h, 0, 0, 0); opts.push(fmt(d, '내일')); });
+  $('#ord-pickup').innerHTML = opts.map(o => `<option>${o}</option>`).join('');
+}
+
+$('#order-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const msg = $('#form-msg');
+  const t = cartTotals();
+  const name = $('#ord-name').value.trim(), phone = $('#ord-phone').value.trim();
+  msg.dataset.sticky = '1';
+  if (t.stems < 3) { msg.textContent = '3송이 이상 담아 주세요.'; return; }
+  if (!name) { msg.textContent = '주문자 이름을 적어 주세요.'; $('#ord-name').focus(); return; }
+  if (!/^[0-9\-\s+]{9,}$/.test(phone)) { msg.textContent = '연락처를 숫자로 적어 주세요. 예: 010-1234-5678'; $('#ord-phone').focus(); return; }
+  const short = t.items.find(i => { const f = state.flowers.find(x => x.id === i.id); return !f || f.stock < i.count; });
+  if (short) { msg.textContent = `${label(short)} 재고가 부족해요. 송이 수를 줄여 주세요.`; return; }
+  msg.textContent = ''; delete msg.dataset.sticky;
+  state.seq = (state.seq || 1001) + 1;
+  const order = { id: 'A-' + state.seq, createdAt: new Date().toISOString(), name, phone, pickup: $('#ord-pickup').value, memo: $('#ord-memo').value.trim(), wrap: state.wrap, items: t.items, flowerTotal: t.flowerTotal, wrapFee: t.fee, total: t.total, status: 'new' };
+  t.items.forEach(i => { const f = state.flowers.find(x => x.id === i.id); if (f) f.stock -= i.count; });
+  state.orders.push(order); state.cart = {};
+  save(); renderMake();
+  $('#ord-memo').value = '';
+  $('#done').innerHTML = `<div class="done-box"><b>주문을 보냈어요. 주문번호 ${esc(order.id)}</b><span class="hint">사장님이 확인하면 연락드려요. 프로토타입이라 주문은 이 브라우저의 사장님 화면에만 들어가요.</span><button class="btn btn-small" type="button" data-act="goto-seller">사장님 화면에서 확인하기</button></div>`;
+  toast(`주문 ${order.id}을 보냈어요.`);
+});
+
+/* ================= 시작 ================= */
+const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+$('#shelf-date').textContent = `${today} 사입분 · 예시 데이터`;
+$('#ledger-date').textContent = `${today} · 가격은 예시예요`;
+pickupOptions();
+route();
+renderRecs(recommend('birthday', 'bright', 50000));
+})();
+</script>
+</body>
+</html>

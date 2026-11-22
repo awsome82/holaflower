@@ -12,6 +12,7 @@
 
 - `index.html` — 단일 페이지 사이트 (Tailwind CDN)
 - `images/` — 최적화된 웹용 이미지 (`hero.webp`, `og.jpg`)
+- `bouquet/` — 꽃다발 공방 앱 프로토타입 (손님 꽃 조합·AI 추천 데모·사장님 사입/주문 화면). 주소: https://awsome82.github.io/holaflower/bouquet/ · 조사·평가: [`bouquet/REPORT.md`](bouquet/REPORT.md)
 - `bgm.mp3` — (선택) 배경음악 파일을 같은 폴더에 두면 재생 버튼이 동작합니다
 
 ## 문의
