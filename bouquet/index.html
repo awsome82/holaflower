@@ -100,7 +100,7 @@ textarea.input { resize: vertical; min-height: 60px; }
 
 /* 미리보기 */
 .stage { position: relative; border-radius: 14px; border: 1px solid var(--line); background: radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 65%), var(--surface); padding: 14px 14px 12px; }
-.stage svg { display: block; width: 100%; max-width: 300px; height: auto; margin-inline: auto; aspect-ratio: 400 / 440; }
+.stage canvas { display: block; width: 100%; max-width: 320px; height: auto; margin-inline: auto; aspect-ratio: 400 / 440; }
 .stage-cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .stage-cap .pen { font-family: var(--pen); font-size: 24px; line-height: 1; color: var(--amber); }
 .wraps { display: flex; gap: 8px; align-items: center; }
@@ -134,7 +134,7 @@ textarea.input { resize: vertical; min-height: 60px; }
 input[type="range"] { width: 100%; accent-color: var(--amber); }
 .recs { display: grid; gap: 12px; margin-top: 16px; }
 .rec { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 4px 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); align-items: start; }
-.rec svg { grid-row: 1 / span 5; width: 128px; height: auto; display: block; aspect-ratio: 400 / 440; }
+.rec canvas { grid-row: 1 / span 5; width: 128px; height: auto; display: block; aspect-ratio: 400 / 440; }
 .rec .btn { justify-self: start; margin-top: 4px; }
 .rec ul { display: flex; flex-wrap: wrap; gap: 2px 14px; list-style: none; padding: 0 !important; }
 .rec h4 { margin: 0; font-family: var(--serif); font-size: 16px; line-height: 1.35; }
@@ -151,7 +151,7 @@ input[type="range"] { width: 100%; accent-color: var(--amber); }
 .fl { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; gap: 2px 10px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
 .fl.on { border-color: var(--amber); }
 .fl.out { opacity: .5; }
-.fl svg { grid-row: 1 / span 2; width: 52px; height: 52px; }
+.fl .ph { grid-row: 1 / span 2; width: 56px; height: 56px; object-fit: contain; border-radius: 10px; background: radial-gradient(circle at 50% 45%, var(--surface-2), transparent 72%); }
 .fl .nm { font-weight: 700; font-size: 14.5px; line-height: 1.3; min-width: 0; }
 .fl .nm small { display: block; font-weight: 400; font-size: 12.5px; color: var(--fg-dim); }
 .fl .meta { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 6px; }
@@ -183,10 +183,15 @@ td .input { padding: 6px 8px; }
 td input[type="color"] { width: 38px; height: 32px; padding: 2px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface-2); }
 td.money input { text-align: right; }
 .margin-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.photo-cell { display: flex; align-items: center; gap: 8px; }
+.photo-cell img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: var(--surface-2); flex: none; }
+.photo-cell .upload { position: relative; overflow: hidden; }
+.photo-cell .upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.loading { padding: 40px; text-align: center; color: var(--fg-dim); }
 .margin-cell.bad { color: var(--alert); }
 .orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; }
 .order { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; padding: 14px; }
-.order svg { width: 150px; height: auto; aspect-ratio: 400 / 440; border-radius: 10px; background: radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 65%), var(--surface-2); }
+.order canvas { width: 150px; height: auto; aspect-ratio: 400 / 440; border-radius: 10px; background: radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 65%), var(--surface-2); }
 .order-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .order-head b { font-family: var(--serif); font-size: 17px; }
 .status { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid currentColor; }
@@ -216,7 +221,7 @@ td.money input { text-align: right; }
   .orderbox { order: 4; grid-area: auto; }
   .top { position: static; }
   .rec { grid-template-columns: 96px minmax(0, 1fr); }
-  .rec svg { width: 96px; }
+  .rec canvas { width: 96px; }
   .ai-form { grid-template-columns: 1fr 1fr; }
   .ai-form .go { grid-column: 1 / -1; }
   .mbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; align-items: center; justify-content: space-between; gap: 12px;
@@ -228,7 +233,7 @@ td.money input { text-align: right; }
 @media (max-width: 520px) {
   .order-form { grid-template-columns: 1fr; }
   .order { grid-template-columns: 1fr; }
-  .order svg { width: 100%; max-width: 220px; margin-inline: auto; }
+  .order canvas { width: 100%; max-width: 220px; margin-inline: auto; }
   .brand span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
@@ -290,7 +295,7 @@ td.money input { text-align: right; }
         <h2 id="shelf-title">오늘 들어온 꽃</h2>
         <span class="hint" id="shelf-date"></span>
       </div>
-      <div id="shelf"></div>
+      <div id="shelf"><div class="loading">꽃 사진을 불러오는 중…</div></div>
     </section>
 
     <section class="orderbox card card-pad" id="orderbox" aria-labelledby="form-title">
@@ -331,7 +336,7 @@ td.money input { text-align: right; }
             <input type="radio" name="wrap" id="wrap-pink" value="pink"><label for="wrap-pink" title="핑크" style="background:#e8c3c0"></label>
           </div>
         </div>
-        <p class="illu-note">그림은 조합을 보여주는 일러스트예요. 실제 꽃은 송이마다 색과 크기가 조금씩 달라요.</p>
+        <p class="illu-note">꽃 사진을 합성한 미리보기예요. 실제 꽃은 송이마다 색과 크기가 조금씩 달라요.</p>
       </div>
 
       <section class="bill card card-pad" id="bill" aria-labelledby="bill-title">
@@ -368,12 +373,12 @@ td.money input { text-align: right; }
       <div class="table-scroll">
         <table>
           <thead>
-            <tr><th>꽃 이름</th><th>색 이름</th><th>색</th><th>모양</th><th>분류</th><th>사입가/송이</th><th>판매가/송이</th><th>마진</th><th>재고</th><th></th></tr>
+            <tr><th>사진</th><th>꽃 이름</th><th>색 이름</th><th>색</th><th>분류</th><th>사입가/송이</th><th>판매가/송이</th><th>마진</th><th>재고</th><th></th></tr>
           </thead>
           <tbody id="ledger"></tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:8px">여기서 바꾼 재고와 가격은 손님 화면에 바로 반영됩니다. 주문이 들어오면 재고가 자동으로 줄어요.</p>
+      <p class="hint" style="margin-top:8px">여기서 바꾼 재고와 가격은 손님 화면에 바로 반영됩니다. 주문이 들어오면 재고가 자동으로 줄어요. 오늘 들어온 꽃을 직접 찍어 올리면 손님 화면과 다발 미리보기에 그 사진이 쓰입니다.</p>
     </section>
 
     <section aria-labelledby="orders-title">
@@ -392,41 +397,72 @@ td.money input { text-align: right; }
 (() => {
 'use strict';
 
+/* ================= 꽃 사진 라이브러리 ================= */
+// 사진: 꽃마을에 난향가득 매장 사진에서 오려낸 컷. kind: head(꽃송이) / filler(잔꽃) / green(잎)
+const PHOTOS = {
+  'rose-red':            { label: '장미 레드', kind: 'head', type: 'rose', size: 1.0, color: '#a3142a' },
+  'rose-peach':          { label: '장미 피치', kind: 'head', type: 'rose', size: 1.15, color: '#f3a48f' },
+  'rose-apricot':        { label: '장미 애프리콧', kind: 'head', type: 'rose', size: 1.0, color: '#f6b98a' },
+  'lisianthus-pink':     { label: '리시안셔스 핑크', kind: 'head', type: 'lisianthus', size: .86, color: '#e5b9dc' },
+  'lisianthus-lavender': { label: '리시안셔스 라벤더', kind: 'head', type: 'lisianthus', size: .9, color: '#c7b3e6' },
+  'lisianthus-butter':   { label: '리시안셔스 버터', kind: 'head', type: 'lisianthus', size: .95, color: '#f4ec9c' },
+  'lisianthus-lime':     { label: '리시안셔스 라임', kind: 'head', type: 'lisianthus', size: .62, color: '#cbe25a' },
+  'tulip-orange':        { label: '튤립 오렌지', kind: 'head', type: 'tulip', size: .78, color: '#ee7a2f' },
+  'tulip-pink':          { label: '튤립 핑크', kind: 'head', type: 'tulip', size: .78, color: '#f1b8bd' },
+  'tulip-white':         { label: '튤립 화이트', kind: 'head', type: 'tulip', size: .8, color: '#f4f1e6' },
+  'calla-magenta':       { label: '칼라 마젠타', kind: 'head', type: 'calla', size: .95, color: '#d0528e' },
+  'carnation-peach':     { label: '카네이션 피치', kind: 'head', type: 'carnation', size: .82, color: '#f7b98f' },
+  'ranunculus-yellow':   { label: '라넌큘러스 옐로', kind: 'head', type: 'ranunculus', size: .88, color: '#f2b41c' },
+  'hydrangea-blue':      { label: '수국 블루', kind: 'head', type: 'hydrangea', size: 1.55, color: '#a9c6ea' },
+  'hellebore-green':     { label: '헬레보루스 그린', kind: 'head', type: 'hellebore', size: .78, color: '#b9d56a' },
+  'babys-breath':        { label: '안개꽃 (합성 이미지)', kind: 'filler', type: 'filler', size: 1.0, color: '#fbfaf5', generated: true },
+  'eucalyptus':          { label: '유칼립투스', kind: 'green', type: 'green', axis: 'h', color: '#7f9a86' },
+  'asparagus':           { label: '아스파라거스', kind: 'green', type: 'green', axis: 'v', color: '#b6cc58' }
+};
+const PHOTO_BASE = 'flowers/';
+
 /* ================= 데이터 ================= */
-const KEY = 'holaflower-bouquet-v1';
+const KEY = 'holaflower-bouquet-v2';
 const CATS = { main: '메인 꽃', sub: '서브·필러', green: '그린' };
 const CAT_HINT = { main: '다발의 얼굴이 되는 꽃', sub: '볼륨과 사이를 채우는 꽃', green: '잎과 줄기' };
-const SHAPES = { rose: '장미형', round: '둥근 꽃', tulip: '튤립형', calla: '칼라형', spike: '이삭형', cluster: '송이형(수국)', filler: '잔꽃(안개꽃)', leaf: '둥근 잎', grass: '긴 잎' };
 const WRAPS = {
-  kraft: { label: '크라프트', paper: '#c9a27c', edge: '#a37c58', ribbon: '#6e4426' },
-  white: { label: '화이트', paper: '#efe9df', edge: '#cfc5b6', ribbon: '#c9a15a' },
-  black: { label: '블랙', paper: '#2b2725', edge: '#4d4642', ribbon: '#d9c39a' },
+  kraft: { label: '크라프트', paper: '#c49a72', edge: '#9c7550', ribbon: '#6e4426' },
+  white: { label: '화이트', paper: '#efe9df', edge: '#cdc3b4', ribbon: '#c9a15a' },
+  black: { label: '블랙', paper: '#2d2927', edge: '#4d4642', ribbon: '#d9c39a' },
   pink:  { label: '핑크', paper: '#e8c3c0', edge: '#c99d99', ribbon: '#a8325f' }
 };
+const F = (id, name, colorName, photo, cat, cost, price, stock) => ({ id, name, colorName, photo, color: PHOTOS[photo].color, cat, cost, price, stock });
 const SAMPLE_FLOWERS = [
-  { id: 'f1', name: '장미', colorName: '레드', color: '#b3203a', shape: 'rose', cat: 'main', cost: 1400, price: 3500, stock: 20 },
-  { id: 'f2', name: '장미', colorName: '피치', color: '#f2a98b', shape: 'rose', cat: 'main', cost: 1400, price: 3500, stock: 15 },
-  { id: 'f3', name: '튤립', colorName: '오렌지', color: '#ee7a2f', shape: 'tulip', cat: 'main', cost: 1200, price: 3000, stock: 20 },
-  { id: 'f4', name: '칼라', colorName: '마젠타', color: '#b8336a', shape: 'calla', cat: 'main', cost: 1800, price: 4500, stock: 8 },
-  { id: 'f5', name: '리시안셔스', colorName: '라임', color: '#cfe08a', shape: 'round', cat: 'main', cost: 1600, price: 4000, stock: 12 },
-  { id: 'f6', name: '카네이션', colorName: '핑크', color: '#ec8fb0', shape: 'round', cat: 'main', cost: 1000, price: 2500, stock: 25 },
-  { id: 'f7', name: '라넌큘러스', colorName: '버터', color: '#f4d77a', shape: 'round', cat: 'main', cost: 1600, price: 4000, stock: 10 },
-  { id: 'f8', name: '스토크', colorName: '화이트', color: '#f3efe6', shape: 'spike', cat: 'sub', cost: 1400, price: 3500, stock: 10 },
-  { id: 'f9', name: '수국', colorName: '블루', color: '#8fa6d8', shape: 'cluster', cat: 'sub', cost: 3200, price: 8000, stock: 5 },
-  { id: 'f10', name: '안개꽃', colorName: '화이트', color: '#fbfaf5', shape: 'filler', cat: 'sub', cost: 800, price: 2000, stock: 10 },
-  { id: 'f11', name: '유칼립투스', colorName: '실버', color: '#8aa598', shape: 'leaf', cat: 'green', cost: 800, price: 2000, stock: 15 },
-  { id: 'f12', name: '루스커스', colorName: '그린', color: '#4f7a43', shape: 'grass', cat: 'green', cost: 600, price: 1500, stock: 20 }
+  F('f1', '장미', '레드', 'rose-red', 'main', 1400, 3500, 20),
+  F('f2', '장미', '피치', 'rose-peach', 'main', 1600, 4000, 15),
+  F('f3', '튤립', '오렌지', 'tulip-orange', 'main', 1200, 3000, 20),
+  F('f4', '튤립', '핑크', 'tulip-pink', 'main', 1200, 3000, 15),
+  F('f5', '튤립', '화이트', 'tulip-white', 'main', 1200, 3000, 15),
+  F('f6', '칼라', '마젠타', 'calla-magenta', 'main', 1800, 4500, 8),
+  F('f7', '라넌큘러스', '옐로', 'ranunculus-yellow', 'main', 1600, 4000, 10),
+  F('f8', '카네이션', '피치', 'carnation-peach', 'main', 1000, 2500, 25),
+  F('f9', '리시안셔스', '라벤더', 'lisianthus-lavender', 'main', 1600, 4000, 12),
+  F('f10', '리시안셔스', '핑크', 'lisianthus-pink', 'main', 1600, 4000, 10),
+  F('f11', '수국', '블루', 'hydrangea-blue', 'sub', 3200, 8000, 5),
+  F('f12', '리시안셔스', '라임', 'lisianthus-lime', 'sub', 1400, 3500, 12),
+  F('f13', '헬레보루스', '그린', 'hellebore-green', 'sub', 1800, 4500, 6),
+  F('f14', '안개꽃', '화이트', 'babys-breath', 'sub', 800, 2000, 10),
+  F('f15', '유칼립투스', '실버', 'eucalyptus', 'green', 800, 2000, 15),
+  F('f16', '아스파라거스', '그린', 'asparagus', 'green', 600, 1500, 20)
 ];
-const SAMPLE_CART = { f2: 5, f6: 3, f5: 2, f10: 1, f11: 3 };
+const SAMPLE_CART = { f2: 3, f9: 2, f8: 3, f14: 2, f15: 3 };
 
 function snapshotItems(cart, flowers) {
   return Object.entries(cart).map(([id, count]) => {
     const f = flowers.find(x => x.id === id);
-    return f && count > 0 ? { id, name: f.name, colorName: f.colorName, color: f.color, shape: f.shape, cat: f.cat, price: f.price, count } : null;
+    if (!f || count <= 0) return null;
+    const it = { id, name: f.name, colorName: f.colorName, color: f.color, photo: f.photo, cat: f.cat, price: f.price, count };
+    if (f.photo === 'custom') it.photoData = f.photoData;
+    return it;
   }).filter(Boolean);
 }
 function sampleOrder(flowers) {
-  const items = snapshotItems({ f1: 7, f10: 2, f11: 3, f12: 2 }, flowers);
+  const items = snapshotItems({ f1: 7, f14: 3, f15: 3 }, flowers);
   const flowerTotal = items.reduce((s, i) => s + i.price * i.count, 0);
   const fee = wrapFee(items.reduce((s, i) => s + i.count, 0));
   return { id: 'A-1001', example: true, createdAt: new Date().toISOString(), name: '김○○', phone: '010-****-1234', pickup: '오늘 18:00', memo: '리본에 "결혼 10주년 축하해"', wrap: 'black', items, flowerTotal, wrapFee: fee, total: flowerTotal + fee, status: 'new' };
@@ -442,13 +478,15 @@ function load() {
   } catch (e) { /* 저장소를 못 쓰면 예시로 시작 */ }
   return freshState();
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 무시 */ } }
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { toast('브라우저 저장 공간이 부족해요. 올린 사진 수를 줄여 주세요.'); }
+}
 let state = load();
 
 /* ================= 유틸 ================= */
 const $ = s => document.querySelector(s);
 const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
-const f1 = n => Math.round(n * 10) / 10;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function wrapFee(n) { return n === 0 ? 0 : n <= 10 ? 3000 : n <= 20 ? 5000 : 7000; }
 function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -462,7 +500,6 @@ function hsl(hex) {
   if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
   return { h, s, l };
 }
-const FAMILY_LABEL = { red: '레드', pink: '핑크', peach: '피치', orange: '오렌지', yellow: '옐로', green: '그린', blue: '블루', purple: '퍼플', white: '화이트' };
 function family(hex) {
   const { h, s, l } = hsl(hex);
   if (l > .9) return 'white';
@@ -475,7 +512,6 @@ function family(hex) {
   if (h < 300) return 'purple';
   return 'pink';
 }
-// 받침 처리: 을/를, 으로/로, 이/가
 function hasJong(word) { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0; }
 function jongIsRieul(word) { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 8; }
 const eul = w => w + (hasJong(w) ? '을' : '를');
@@ -483,135 +519,222 @@ const iga = w => w + (hasJong(w) ? '이' : '가');
 const ro = w => w + (hasJong(w) && !jongIsRieul(w) ? '으로' : '로');
 const label = f => `${f.colorName ? f.colorName + ' ' : ''}${f.name}`;
 const available = f => Math.max(0, (f.stock || 0) - (state.cart[f.id] || 0));
+const meta = it => it.photo === 'custom'
+  ? { kind: it.cat === 'green' ? 'green' : 'head', type: 'custom', size: .9, axis: 'v', custom: true }
+  : (PHOTOS[it.photo] || PHOTOS['rose-peach']);
 let toastTimer;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
 
-/* ================= 꽃 그리기 ================= */
-function headSVG(shape, x, y, s, c, rot, rng) {
-  const d1 = shade(c, -.18), d2 = shade(c, -.36), l1 = shade(c, .2);
-  const T = `transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)})"`;
-  switch (shape) {
-    case 'rose':
-      return `<g ${T}><circle r="${f1(s)}" fill="${d1}"/><circle r="${f1(s * .84)}" fill="${c}"/>` +
-        `<path d="M${f1(-s * .55)} ${f1(s * .1)}A${f1(s * .55)} ${f1(s * .55)} 0 1 1 ${f1(s * .42)} ${f1(s * .36)}" fill="none" stroke="${d1}" stroke-width="${f1(s * .1)}" stroke-linecap="round"/>` +
-        `<path d="M${f1(-s * .28)} 0A${f1(s * .3)} ${f1(s * .3)} 0 1 1 ${f1(s * .2)} ${f1(s * .2)}" fill="none" stroke="${d2}" stroke-width="${f1(s * .09)}" stroke-linecap="round"/>` +
-        `<circle r="${f1(s * .11)}" fill="${d2}"/></g>`;
-    case 'round': {
-      let p = '';
-      for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; p += `<circle cx="${f1(Math.cos(a) * s * .58)}" cy="${f1(Math.sin(a) * s * .58)}" r="${f1(s * .44)}" fill="${c}" stroke="${d1}" stroke-width="1"/>`; }
-      for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + .5; p += `<circle cx="${f1(Math.cos(a) * s * .27)}" cy="${f1(Math.sin(a) * s * .27)}" r="${f1(s * .3)}" fill="${l1}" stroke="${d1}" stroke-width=".8"/>`; }
-      return `<g ${T}>${p}<circle r="${f1(s * .14)}" fill="${d2}"/></g>`;
-    }
-    case 'tulip':
-      return `<g ${T}><path d="M${f1(-.62 * s)} ${f1(-.05 * s)}Q${f1(-.66 * s)} ${f1(-.95 * s)} ${f1(-.2 * s)} ${f1(-.88 * s)}Q0 ${f1(-.45 * s)} ${f1(.2 * s)} ${f1(-.88 * s)}Q${f1(.66 * s)} ${f1(-.95 * s)} ${f1(.62 * s)} ${f1(-.05 * s)}Q${f1(.55 * s)} ${f1(.92 * s)} 0 ${f1(.92 * s)}Q${f1(-.55 * s)} ${f1(.92 * s)} ${f1(-.62 * s)} ${f1(-.05 * s)}Z" fill="${c}" stroke="${d1}" stroke-width="1.2"/>` +
-        `<path d="M0 ${f1(-.5 * s)}Q${f1(.1 * s)} ${f1(.2 * s)} 0 ${f1(.85 * s)}" stroke="${d1}" stroke-width="1.4" fill="none"/></g>`;
-    case 'calla':
-      return `<g ${T}><path d="M0 ${f1(s)}Q${f1(-.75 * s)} ${f1(.1 * s)} ${f1(-.5 * s)} ${f1(-.72 * s)}Q${f1(.05 * s)} ${f1(-1.05 * s)} ${f1(.6 * s)} ${f1(-.78 * s)}Q${f1(.35 * s)} ${f1(-.15 * s)} 0 ${f1(s)}Z" fill="${c}" stroke="${d1}" stroke-width="1.2"/>` +
-        `<path d="M${f1(.02 * s)} ${f1(.35 * s)}L${f1(.1 * s)} ${f1(-.42 * s)}" stroke="#e8c547" stroke-width="${f1(.16 * s)}" stroke-linecap="round"/></g>`;
-    case 'spike': {
-      let p = '';
-      for (let k = 0; k < 6; k++) { p += `<circle cx="${f1((k % 2 ? 1 : -1) * .12 * s)}" cy="${f1(.7 * s - k * .34 * s)}" r="${f1((.4 - k * .035) * s)}" fill="${k % 2 ? l1 : c}" stroke="${d1}" stroke-width=".9"/>`; }
-      return `<g ${T}>${p}</g>`;
-    }
-    case 'cluster': {
-      let p = `<circle r="${f1(s)}" fill="${d1}"/>`;
-      for (let k = 0; k < 26; k++) {
-        const a = rng() * Math.PI * 2, r = Math.sqrt(rng()) * s * .82;
-        p += `<circle cx="${f1(Math.cos(a) * r)}" cy="${f1(Math.sin(a) * r)}" r="${f1(s * .2)}" fill="${rng() < .5 ? c : l1}" stroke="${d1}" stroke-width=".7"/>`;
-      }
-      return `<g ${T}>${p}</g>`;
-    }
-    default:
-      return `<g ${T}><circle r="${f1(s)}" fill="${c}" stroke="${d1}"/></g>`;
+/* ================= 이미지 불러오기 ================= */
+const IMG = {};
+let BB_URL = '';
+function loadImg(src) { return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
+function imgKey(it) { return it.photo === 'custom' ? 'c:' + it.id + ':' + hashStr(it.photoData || '') : it.photo; }
+function imgSrc(it) { return it.photo === 'custom' ? it.photoData : it.photo === 'babys-breath' ? BB_URL : PHOTO_BASE + it.photo + '.webp'; }
+function getImg(it) {
+  const k = imgKey(it);
+  if (IMG[k] === undefined) {
+    IMG[k] = null;
+    loadImg(imgSrc(it)).then(i => { IMG[k] = i; if (i) route(); });
   }
+  return IMG[k];
 }
-function fillerSVG(x, y, s, c, rng) {
-  let p = '';
-  for (let k = 0; k < 9; k++) { const a = rng() * Math.PI * 2, r = Math.sqrt(rng()) * s; p += `<path d="M${f1(x)} ${f1(y)}L${f1(x + Math.cos(a) * r)} ${f1(y + Math.sin(a) * r)}" stroke="#93a982" stroke-width=".8"/>`; }
-  for (let k = 0; k < 18; k++) { const a = rng() * Math.PI * 2, r = Math.sqrt(rng()) * s; p += `<circle cx="${f1(x + Math.cos(a) * r)}" cy="${f1(y + Math.sin(a) * r)}" r="${f1(1.8 + rng() * 1.4)}" fill="${c}" stroke="${shade(c, -.2)}" stroke-width=".5"/>`; }
-  return p;
-}
-function leafSVG(x, y, len, c, rot) {
-  let p = `<path d="M0 0L${f1(len)} 0" stroke="${shade(c, -.35)}" stroke-width="1.6"/>`;
-  for (let k = 1; k <= 5; k++) { const side = k % 2 ? 1 : -1; p += `<circle cx="${f1(len * k / 5.4)}" cy="${f1(side * len * .1)}" r="${f1(len * .13)}" fill="${k % 2 ? c : shade(c, -.12)}" stroke="${shade(c, -.25)}" stroke-width=".7"/>`; }
-  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)})">${p}</g>`;
-}
-function grassSVG(x, y, len, c, rot) {
-  let p = '';
-  [-16, 0, 16].forEach((a, i) => {
-    p += `<g transform="rotate(${a})"><ellipse cx="${f1(len * .5)}" cy="0" rx="${f1(len * .5)}" ry="${f1(len * .11)}" fill="${i === 1 ? c : shade(c, -.12)}" stroke="${shade(c, -.3)}" stroke-width=".7"/><path d="M0 0L${f1(len * .95)} 0" stroke="${shade(c, -.3)}" stroke-width=".7"/></g>`;
+// 안개꽃: 아주 작은 꽃이라 사진 대신 사실감 있게 직접 그려 씁니다
+function makeBabysBreath() {
+  const c = document.createElement('canvas'); c.width = c.height = 260;
+  const g = c.getContext('2d'); const rng = rngFrom(7);
+  const tips = [];
+  const branch = (x, y, a, len, depth) => {
+    const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len;
+    g.strokeStyle = `rgba(${110 + depth * 10},${140 + depth * 8},${90},.9)`; g.lineWidth = Math.max(.6, 2.2 - depth * .5);
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+    if (depth >= 3) { tips.push([x2, y2]); return; }
+    const n = 2 + Math.floor(rng() * 2);
+    for (let i = 0; i < n; i++) branch(x2, y2, a + (rng() - .5) * 1.5, len * (.55 + rng() * .25), depth + 1);
+  };
+  for (let i = 0; i < 5; i++) branch(130, 250, -Math.PI / 2 + (i - 2) * .32 + (rng() - .5) * .2, 70 + rng() * 25, 0);
+  tips.forEach(([x, y]) => {
+    for (let k = 0; k < 3; k++) {
+      const fx = x + (rng() - .5) * 12, fy = y + (rng() - .5) * 12, r = 3 + rng() * 3.2;
+      const gr = g.createRadialGradient(fx - r * .3, fy - r * .3, r * .2, fx, fy, r);
+      gr.addColorStop(0, '#ffffff'); gr.addColorStop(.7, '#f3f1ea'); gr.addColorStop(1, '#d8d4c8');
+      g.fillStyle = gr; g.beginPath(); g.arc(fx, fy, r, 0, Math.PI * 2); g.fill();
+    }
   });
-  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)})">${p}</g>`;
+  BB_URL = c.toDataURL('image/png');
+  IMG['babys-breath'] = c;
 }
-const HEAD_SIZE = { rose: 21, round: 20, tulip: 19, calla: 20, spike: 15, cluster: 34 };
-
-/* 단일 꽃 아이콘 (선반용) */
-function iconSVG(f) {
-  const rng = rngFrom(hashStr(f.id + f.color));
-  let body;
-  if (f.shape === 'leaf') body = leafSVG(-4, 22, 40, f.color, -70);
-  else if (f.shape === 'grass') body = grassSVG(0, 24, 46, f.color, -90);
-  else if (f.shape === 'filler') body = fillerSVG(0, 0, 22, f.color, rng);
-  else body = headSVG(f.shape, 0, f.shape === 'spike' ? 4 : 0, f.shape === 'cluster' ? 25 : f.shape === 'spike' ? 22 : 22, f.color, f.shape === 'calla' ? -12 : 0, rng);
-  return `<svg viewBox="-30 -30 60 60" aria-hidden="true">${body}</svg>`;
+async function preload() {
+  makeBabysBreath();
+  const keys = Object.keys(PHOTOS).filter(k => !PHOTOS[k].generated);
+  await Promise.all(keys.map(k => loadImg(PHOTO_BASE + k + '.webp').then(i => { IMG[k] = i; })));
+  const customs = state.flowers.filter(f => f.photo === 'custom' && f.photoData);
+  await Promise.all(customs.map(f => loadImg(f.photoData).then(i => { IMG[imgKey(f)] = i; })));
 }
 
-/* 꽃다발 전체 (미리보기 · 추천 · 주문 카드 공용) */
-function bouquetSVG(items, wrapKey, title) {
+/* ================= 꽃다발 합성 (캔버스) ================= */
+let grain = null;
+function grainPattern(ctx) {
+  if (!grain) {
+    const c = document.createElement('canvas'); c.width = c.height = 140; const g = c.getContext('2d'); const d = g.createImageData(140, 140); const r = rngFrom(3);
+    for (let i = 0; i < d.data.length; i += 4) { const v = r() < .5 ? 0 : 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 10 + r() * 22; }
+    g.putImageData(d, 0, 0); grain = c;
+  }
+  return ctx.createPattern(grain, 'repeat');
+}
+function paperFill(ctx, path, base, edge, tip, topPts, front) {
+  ctx.save();
+  ctx.fillStyle = base; ctx.fill(path);
+  ctx.clip(path);
+  // 주름: 꼭짓점에서 위쪽 가장자리로 퍼지는 면
+  for (let i = 0; i < topPts.length - 1; i++) {
+    const [ax, ay] = topPts[i], [bx, by] = topPts[i + 1];
+    const g = ctx.createLinearGradient(ax, ay, bx, by);
+    const light = i % 2 === 0;
+    g.addColorStop(0, light ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.10)');
+    g.addColorStop(1, light ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(tip[0], tip[1]); ctx.lineTo(ax, ay); ctx.lineTo(bx, by); ctx.closePath(); ctx.fill();
+  }
+  // 아래로 갈수록 어둡게
+  const v = ctx.createLinearGradient(0, topPts[0][1] - 40, 0, tip[1]);
+  v.addColorStop(0, front ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,0)');
+  v.addColorStop(1, 'rgba(0,0,0,.22)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, 400, 440);
+  ctx.fillStyle = grainPattern(ctx); ctx.fillRect(0, 0, 400, 440);
+  ctx.restore();
+  ctx.save(); ctx.strokeStyle = edge; ctx.lineWidth = 1.2; ctx.stroke(path); ctx.restore();
+}
+function drawRibbon(ctx, x, y, color) {
+  const dark = shade(color, -.35), light = shade(color, .35);
+  const satin = (x0, x1) => { const g = ctx.createLinearGradient(x0, y - 12, x1, y + 12); g.addColorStop(0, dark); g.addColorStop(.45, light); g.addColorStop(.6, color); g.addColorStop(1, dark); return g; };
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+  // 꼬리
+  ctx.fillStyle = satin(x - 30, x + 30);
+  ctx.beginPath(); ctx.moveTo(x - 4, y + 4); ctx.quadraticCurveTo(x - 16, y + 30, x - 24, y + 50); ctx.lineTo(x - 13, y + 47); ctx.quadraticCurveTo(x - 7, y + 26, x + 2, y + 6); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + 4, y + 4); ctx.quadraticCurveTo(x + 15, y + 28, x + 21, y + 52); ctx.lineTo(x + 31, y + 46); ctx.quadraticCurveTo(x + 17, y + 22, x + 6, y + 4); ctx.closePath(); ctx.fill();
+  // 고리
+  [[-1, -18], [1, 18]].forEach(([dir]) => {
+    ctx.save(); ctx.translate(x + dir * 15, y); ctx.rotate(dir * -.32);
+    ctx.fillStyle = satin(-18, 18); ctx.beginPath(); ctx.ellipse(0, 0, 18, 9.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(dir * -3, 1, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+  ctx.fillStyle = satin(x - 7, x + 7); ctx.beginPath(); ctx.ellipse(x, y + 1, 6.5, 7.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+function drawEmpty(ctx) {
+  const dim = getComputedStyle(document.documentElement).getPropertyValue('--fg-dim').trim() || '#999';
+  ctx.save(); ctx.strokeStyle = dim; ctx.globalAlpha = .6; ctx.setLineDash([6, 8]); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(200, 200, 110, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+  ctx.fillStyle = dim; ctx.font = '17px "Gowun Dodum", sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('꽃을 담으면', 200, 196); ctx.fillText('여기에 다발이 그려져요', 200, 222); ctx.restore();
+}
+function drawBouquet(canvas, items, wrapKey) {
+  const ctx = canvas.getContext('2d'); const S = canvas.width / 400;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.setTransform(S, 0, 0, S, 0, 0);
   const W = WRAPS[wrapKey] || WRAPS.kraft;
-  const cx = 200;
-  const stems = [];
-  items.forEach(it => { for (let k = 0; k < it.count; k++) stems.push(it); });
-  const t = esc(title || '꽃다발 미리보기');
-  if (!stems.length) {
-    return `<svg viewBox="0 0 400 440" role="img" aria-label="${t}"><circle cx="200" cy="190" r="110" fill="none" stroke="var(--line-strong)" stroke-dasharray="6 8" stroke-width="2"/>` +
-      `<text x="200" y="186" text-anchor="middle" fill="var(--fg-dim)" font-size="17" font-family="Gowun Dodum, sans-serif">꽃을 담으면</text>` +
-      `<text x="200" y="212" text-anchor="middle" fill="var(--fg-dim)" font-size="17" font-family="Gowun Dodum, sans-serif">여기에 다발이 그려져요</text></svg>`;
-  }
+  const stems = []; items.forEach(it => { for (let k = 0; k < it.count; k++) stems.push(it); });
+  if (!stems.length) { drawEmpty(ctx); return; }
   const rng = rngFrom(hashStr(items.map(i => i.id + ':' + i.count).join('|') + wrapKey));
-  const greens = stems.filter(s => s.shape === 'leaf' || s.shape === 'grass');
-  const fillers = stems.filter(s => s.shape === 'filler');
-  const heads = shuffle(stems.filter(s => !['leaf', 'grass', 'filler'].includes(s.shape)), rng);
-  const weight = heads.reduce((a, s) => a + (s.shape === 'cluster' ? 3 : 1), 0) + fillers.length * .7 + greens.length * .25;
-  const R = Math.min(136, 34 + 15 * Math.sqrt(Math.max(1, weight)));
-  const cy = 205 - .175 * R;            // 작은 다발도 화면 가운데에 오도록
-  const tipY = Math.min(426, cy + R * 1.3 + 60);
-  let out = `<svg viewBox="0 0 400 440" role="img" aria-label="${t}">`;
+  const greens = stems.filter(s => meta(s).kind === 'green');
+  const fillers = stems.filter(s => meta(s).kind === 'filler');
+  const heads = shuffle(stems.filter(s => meta(s).kind === 'head'), rng);
+  const weight = heads.reduce((a, s) => a + Math.pow(meta(s).size || 1, 2), 0) + fillers.length * .6 + greens.length * .2;
+  const R = Math.min(138, 30 + 18.5 * Math.sqrt(Math.max(1, weight)));
+  const cx = 200, cy = 212 - .2 * R;
+  const tip = [cx, Math.min(432, cy + R * 1.22 + 66)];
+
   // 뒤 포장지
-  const back = (pad) => `M${cx} ${tipY}L${f1(cx - R - 36 - pad)} ${f1(cy - R * .3)}Q${f1(cx - R * .62)} ${f1(cy - R - 44 - pad)} ${cx} ${f1(cy - R * .95 - 30 - pad)}Q${f1(cx + R * .62)} ${f1(cy - R - 44 - pad)} ${f1(cx + R + 36 + pad)} ${f1(cy - R * .3)}Z`;
-  out += `<path d="${back(5)}" fill="${W.edge}"/><path d="${back(0)}" fill="${W.paper}"/>`;
-  // 그린: 가장자리에서 바깥으로
+  const L = [cx - R - 30, cy - R * .22], Rt = [cx + R + 30, cy - R * .22], T = [cx, cy - R * .98 - 22];
+  const back = new Path2D();
+  back.moveTo(tip[0], tip[1]); back.lineTo(L[0], L[1]);
+  back.quadraticCurveTo(cx - R * .7, cy - R - 40, T[0], T[1]);
+  back.quadraticCurveTo(cx + R * .7, cy - R - 40, Rt[0], Rt[1]); back.closePath();
+  const topPts = [];
+  for (let i = 0; i <= 8; i++) { const t = i / 8; const a = Math.PI + t * Math.PI; topPts.push([cx + Math.cos(a) * (R + 30), cy - R * .22 + Math.sin(a) * (R * .8 + 22)]); }
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8; ctx.fillStyle = W.paper; ctx.fill(back); ctx.restore();
+  paperFill(ctx, back, W.paper, W.edge, tip, topPts, false);
+
+  // 잎 그늘 (꽃 사이 깊이감)
+  const dg = ctx.createRadialGradient(cx, cy, R * .1, cx, cy, R * .92);
+  dg.addColorStop(0, 'rgba(26,36,20,.8)'); dg.addColorStop(.65, 'rgba(34,48,26,.5)'); dg.addColorStop(1, 'rgba(34,48,26,0)');
+  ctx.fillStyle = dg; ctx.beginPath(); ctx.ellipse(cx, cy + 4, R * .92, R * .76, 0, 0, Math.PI * 2); ctx.fill();
+
+  // 그린: 가장자리에서 바깥으로 뻗게
   greens.forEach((g, i) => {
-    const a = -Math.PI / 2 + ((i + .5) / greens.length - .5) * Math.PI * 1.9 + (rng() - .5) * .25;
-    const r0 = R * (.35 + rng() * .25);
-    const x = cx + Math.cos(a) * r0, y = cy + Math.sin(a) * r0 * .8;
-    const len = Math.max(26, Math.min(56, R * .62)) * (.85 + rng() * .3);
-    const deg = a * 180 / Math.PI;
-    out += g.shape === 'leaf' ? leafSVG(x, y, len, g.color, deg) : grassSVG(x, y, len * 1.1, g.color, deg);
+    const img = getImg(g); if (!img) return;
+    const m = meta(g);
+    const a = -Math.PI / 2 + ((i + .5) / greens.length - .5) * Math.PI * 1.25 + (rng() - .5) * .25;
+    const r0 = R * (.3 + rng() * .25);
+    const x = cx + Math.cos(a) * r0, y = cy + Math.sin(a) * r0 * .82;
+    const len = R * (.8 + rng() * .3);
+    const iw = img.width || img.naturalWidth, ih = img.height || img.naturalHeight;
+    ctx.save(); ctx.translate(x, y);
+    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+    if (m.axis === 'h') { ctx.rotate(a); const h = len * ih / iw; ctx.drawImage(img, 0, -h / 2, len, h); }
+    else { ctx.rotate(a + Math.PI / 2); const w = len * iw / ih; ctx.drawImage(img, -w / 2, -len, w, len); }
+    ctx.restore();
   });
-  // 잔꽃: 사이사이
+
+  // 잔꽃
   fillers.forEach((f, i) => {
-    const a = i * 2.39996 + 1.2 + rng() * .5, r = R * (.45 + rng() * .5);
-    out += fillerSVG(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .78, 22, f.color, rng);
+    const img = getImg(f); if (!img) return;
+    const a = -Math.PI / 2 + ((i * .618 + rng() * .3) % 1 - .5) * Math.PI * 1.2, r = R * (.66 + rng() * .3);
+    const size = 74 + rng() * 18;
+    ctx.save(); ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .8); ctx.rotate(a + Math.PI / 2 + (rng() - .5) * .6);
+    ctx.drawImage(img, -size / 2, -size * .8, size, size); ctx.restore();
   });
-  // 메인 꽃: 해바라기 배열(황금각) + 앞쪽이 위에 오도록 y 정렬
+
+  // 꽃송이: 황금각 배열, 앞(아래)에 있는 꽃이 위로 오도록
   const placed = heads.map((s, i) => {
-    const tt = (i + .5) / heads.length, r = R * .84 * Math.sqrt(tt), a = i * 2.39996 + rng() * .35;
-    return { s, x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) * .78 - (1 - tt) * 8 };
+    const tt = (i + .5) / heads.length, r = R * .8 * Math.sqrt(tt), a = i * 2.39996 + rng() * .35;
+    return { s, x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) * .8 - (1 - tt) * 10 };
   }).sort((p, q) => p.y - q.y);
+  const BASE = 76;
   placed.forEach(p => {
-    const size = (HEAD_SIZE[p.s.shape] || 20) * (.92 + rng() * .16);
-    const rot = p.s.shape === 'calla' || p.s.shape === 'tulip' || p.s.shape === 'spike' ? (p.x - cx) * .35 + (rng() - .5) * 20 : rng() * 360;
-    out += headSVG(p.s.shape, p.x, p.y, size, p.s.color, rot, rng);
+    const img = getImg(p.s); if (!img) return;
+    const m = meta(p.s);
+    const iw = img.width || img.naturalWidth, ih = img.height || img.naturalHeight;
+    const d = BASE * (m.size || 1) * (.9 + rng() * .2);
+    const k = d / Math.max(iw, ih);
+    const w = iw * k, h = ih * k;
+    const tilt = m.type === 'tulip' || m.type === 'calla' ? ((p.x - cx) / R) * .45 + (rng() - .5) * .25 : (rng() - .5) * .7;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(tilt);
+    ctx.shadowColor = 'rgba(0,0,0,.42)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+    if (m.custom) {
+      ctx.beginPath(); ctx.arc(0, 0, d * .5, 0, Math.PI * 2); ctx.closePath();
+      ctx.drawImage(img, -d / 2, -d / 2, d, d);
+    } else ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    ctx.restore();
   });
-  // 앞 포장지 (두 장 겹침) + 리본
+
+  // 앞 포장지 두 장 + 리본
   const fy = cy + R * .5;
-  out += `<path d="M${cx} ${tipY + 4}L${f1(cx - R - 22)} ${f1(fy - 6)}Q${f1(cx - R * .35)} ${f1(fy + R * .22)} ${cx + 22} ${f1(fy + 4)}Z" fill="${W.paper}" stroke="${W.edge}" stroke-width="1.5"/>`;
-  out += `<path d="M${cx} ${tipY + 4}L${f1(cx + R + 22)} ${f1(fy - 6)}Q${f1(cx + R * .35)} ${f1(fy + R * .22)} ${cx - 22} ${f1(fy + 4)}Z" fill="${shade(W.paper, -.06)}" stroke="${W.edge}" stroke-width="1.5"/>`;
-  const ry = fy + (tipY - fy) * .42;
-  out += `<g fill="${W.ribbon}" stroke="${shade(W.ribbon, -.25)}" stroke-width="1"><path d="M${cx - 4} ${f1(ry + 4)}Q${cx - 16} ${f1(ry + 30)} ${cx - 26} ${f1(ry + 44)}L${cx - 16} ${f1(ry + 44)}Q${cx - 8} ${f1(ry + 26)} ${cx + 2} ${f1(ry + 6)}Z"/><path d="M${cx + 4} ${f1(ry + 4)}Q${cx + 14} ${f1(ry + 28)} ${cx + 22} ${f1(ry + 46)}L${cx + 30} ${f1(ry + 42)}Q${cx + 16} ${f1(ry + 22)} ${cx + 6} ${f1(ry + 4)}Z"/>` +
-    `<ellipse cx="${cx - 16}" cy="${f1(ry)}" rx="17" ry="9" transform="rotate(-18 ${cx - 16} ${f1(ry)})"/><ellipse cx="${cx + 16}" cy="${f1(ry)}" rx="17" ry="9" transform="rotate(18 ${cx + 16} ${f1(ry)})"/><circle cx="${cx}" cy="${f1(ry + 1)}" r="6"/></g>`;
-  return out + '</svg>';
+  const left = new Path2D(); left.moveTo(tip[0], tip[1] + 4); left.lineTo(cx - R - 26, fy - 8); left.quadraticCurveTo(cx - R * .35, fy + R * .24, cx + 24, fy + 4); left.closePath();
+  const right = new Path2D(); right.moveTo(tip[0], tip[1] + 4); right.lineTo(cx + R + 26, fy - 8); right.quadraticCurveTo(cx + R * .35, fy + R * .24, cx - 24, fy + 4); right.closePath();
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = -2; ctx.fillStyle = W.paper; ctx.fill(left); ctx.restore();
+  paperFill(ctx, left, W.paper, W.edge, [tip[0], tip[1] + 4], [[cx - R - 26, fy - 8], [cx - R * .45, fy + R * .12], [cx - 10, fy + 8], [cx + 24, fy + 4]], true);
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = -3; ctx.fillStyle = shade(W.paper, -.05); ctx.fill(right); ctx.restore();
+  paperFill(ctx, right, shade(W.paper, -.05), W.edge, [tip[0], tip[1] + 4], [[cx - 24, fy + 4], [cx + 10, fy + 8], [cx + R * .45, fy + R * .12], [cx + R + 26, fy - 8]], true);
+  const ry = fy + (tip[1] - fy) * .42;
+  drawRibbon(ctx, cx, ry, W.ribbon);
+}
+let bqSeq = 0;
+const bqJobs = new Map();
+function bouquetCanvas(items, wrap, title, scale) {
+  const id = 'bq' + (++bqSeq);
+  bqJobs.set(id, { items, wrap });
+  const sc = scale || 1;
+  return `<canvas id="${id}" width="${400 * sc}" height="${440 * sc}" role="img" aria-label="${esc(title || '꽃다발 미리보기')}"></canvas>`;
+}
+function paintJobs() {
+  for (const [id, job] of bqJobs) { const c = document.getElementById(id); if (c) drawBouquet(c, job.items, job.wrap); }
+  bqJobs.clear();
+}
+function photoTag(f, cls) {
+  const src = f.photo === 'custom' ? f.photoData : f.photo === 'babys-breath' ? BB_URL : PHOTO_BASE + f.photo + '.webp';
+  return `<img class="${cls}" src="${esc(src)}" alt="${esc(label(f))} 사진" loading="lazy">`;
 }
 
 /* ================= AI 추천 (데모: 규칙 기반) ================= */
@@ -624,15 +747,15 @@ const OCC = {
 };
 const MOOD = {
   bright: { label: '화사한', sat: 1, mix: true },
-  romantic: { label: '로맨틱한', fam: { pink: 2, red: 1, peach: 1, purple: 1 }, shape: { rose: 1.5 } },
+  romantic: { label: '로맨틱한', fam: { pink: 2, red: 1, peach: 1, purple: 1 }, type: { rose: 1.5, lisianthus: .5 } },
   calm: { label: '차분한', sat: -1, fam: { white: 2, green: 1, blue: 1 } },
-  natural: { label: '내추럴한', shape: { spike: 1, round: .6, filler: 1 }, greens: true }
+  natural: { label: '내추럴한', type: { hellebore: 1, lisianthus: .6, ranunculus: .4, filler: 1 }, greens: true }
 };
 function score(f, occ, mood, rng) {
   const fam = family(f.color), { s } = hsl(f.color), m = MOOD[mood];
   let sc = OCC[occ].fam[fam] || 0;
   if (m.fam) sc += m.fam[fam] || 0;
-  if (m.shape) sc += m.shape[f.shape] || 0;
+  if (m.type) sc += m.type[meta(f).type] || 0;
   if (m.sat === 1) sc += s * 1.5;
   if (m.sat === -1) sc += (1 - s) * 1.5;
   return sc + rng() * .6;
@@ -672,13 +795,13 @@ function recommend(occ, mood, budget) {
   const fl = state.flowers.filter(f => f.stock > 0 && f.price > 0);
   const scored = f => ({ f, sc: score(f, occ, mood, rng) });
   const mains = fl.filter(f => f.cat === 'main').map(scored).sort((a, b) => b.sc - a.sc);
-  const fillers = fl.filter(f => f.shape === 'filler' || f.shape === 'spike').map(scored).sort((a, b) => b.sc - a.sc);
+  const fillers = fl.filter(f => f.cat === 'sub' && meta(f).type !== 'hydrangea').map(scored).sort((a, b) => b.sc - a.sc);
   const greens = fl.filter(f => f.cat === 'green').map(scored).sort((a, b) => b.sc - a.sc);
   const m = MOOD[mood], o = OCC[occ];
   const results = [], seen = new Set();
   for (let v = 0; v < 3 && v < mains.length; v++) {
     const focal = mains[v].f;
-    const pool = [...mains.filter(x => x.f.id !== focal.id), ...fl.filter(f => f.shape === 'cluster').map(scored)]
+    const pool = [...mains.filter(x => x.f.id !== focal.id), ...fl.filter(f => meta(f).type === 'hydrangea').map(scored)]
       .map(x => ({ ...x, sc: x.sc + (m.mix ? (family(x.f.color) !== family(focal.color) ? 1 : 0) : (family(x.f.color) === family(focal.color) ? .6 : 0)) }))
       .sort((a, b) => b.sc - a.sc);
     const second = (pool[v === 2 && pool.length > 1 ? 1 : 0] || {}).f;
@@ -726,8 +849,8 @@ function renderShelf() {
       const n = state.cart[f.id] || 0, left = available(f);
       const out = f.stock <= 0;
       return `<div class="fl${n ? ' on' : ''}${out ? ' out' : ''}">
-        ${iconSVG(f)}
-        <div class="nm">${esc(f.name)}<small>${esc(f.colorName || SHAPES[f.shape] || '')}</small></div>
+        ${photoTag(f, 'ph')}
+        <div class="nm">${esc(f.name)}<small>${esc(f.colorName || '')}</small></div>
         <div class="nm"><span class="pr num">${won(f.price)}</span> <small style="display:inline">/송이</small></div>
         <div class="meta">
           <span class="left num${left <= 3 ? ' low' : ''}">${out ? '오늘 품절' : `남은 ${left}송이`}</span>
@@ -745,7 +868,7 @@ function renderShelf() {
 }
 function renderSide() {
   const t = cartTotals();
-  $('#preview').innerHTML = bouquetSVG(t.items, state.wrap, '내가 고른 꽃다발 미리보기');
+  $('#preview').innerHTML = bouquetCanvas(t.items, state.wrap, '내가 고른 꽃다발 미리보기', 2);
   $('#stem-count').textContent = `${t.stems}송이`;
   const wrapInput = document.getElementById('wrap-' + state.wrap);
   if (wrapInput) wrapInput.checked = true;
@@ -760,15 +883,18 @@ function renderSide() {
   $('#order-btn').disabled = t.stems < 3;
   $('#to-form-btn').disabled = t.stems < 3;
   if (!$('#form-msg').dataset.sticky) $('#form-msg').textContent = t.stems && t.stems < 3 ? '3송이 이상 담으면 주문할 수 있어요.' : '';
+  paintJobs();
 }
 function renderMake() { renderShelf(); renderSide(); }
+let lastRecs = [];
 function renderRecs(list) {
+  lastRecs = list;
   const box = $('#recs');
   if (!list.length) { box.innerHTML = '<div class="empty">이 예산으로는 오늘 재고에서 다발을 만들기 어려워요. 예산을 조금 올려 보세요.</div>'; return; }
   box.innerHTML = list.map((r, i) => {
-    const items = r.items.map(x => ({ id: x.f.id, name: x.f.name, colorName: x.f.colorName, color: x.f.color, shape: x.f.shape, count: x.n }));
+    const items = r.items.map(x => ({ id: x.f.id, name: x.f.name, colorName: x.f.colorName, color: x.f.color, photo: x.f.photo, photoData: x.f.photoData, cat: x.f.cat, count: x.n }));
     return `<article class="rec">
-      ${bouquetSVG(items, state.wrap, r.title)}
+      ${bouquetCanvas(items, state.wrap, r.title, 1)}
       <h4>${esc(r.title)}</h4>
       <span class="price num">${won(r.total)} · ${r.stems}송이</span>
       <ul>${r.items.map(x => `<li>${esc(label(x.f))} ${x.n}송이</li>`).join('')}</ul>
@@ -776,7 +902,7 @@ function renderRecs(list) {
       <button class="btn btn-small" type="button" data-act="use-rec" data-i="${i}">이 조합으로 담기</button>
     </article>`;
   }).join('');
-  box._recs = list;
+  paintJobs();
 }
 
 /* ================= 렌더: 사장님 화면 ================= */
@@ -794,16 +920,21 @@ function marginCell(f) {
 }
 function renderLedger() {
   const opt = (obj, v) => Object.entries(obj).map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${l}</option>`).join('');
+  const photoOpts = f => Object.entries(PHOTOS).map(([k, p]) => `<option value="${k}"${k === f.photo ? ' selected' : ''}>${p.label}</option>`).join('')
+    + (f.photo === 'custom' ? '<option value="custom" selected>직접 올린 사진</option>' : '');
   $('#ledger').innerHTML = state.flowers.map(f => `<tr data-id="${esc(f.id)}">
-    <td><input class="input" id="nm-${esc(f.id)}" data-field="name" value="${esc(f.name)}" aria-label="꽃 이름"></td>
-    <td><input class="input" data-field="colorName" value="${esc(f.colorName)}" aria-label="색 이름" style="width:90px"></td>
-    <td><input type="color" data-field="color" value="${esc(f.color)}" aria-label="색"></td>
-    <td><select class="input" data-field="shape" aria-label="모양">${opt(SHAPES, f.shape)}</select></td>
+    <td><div class="photo-cell">${photoTag(f, '')}
+      <select class="input" data-field="photo" aria-label="사진 고르기" style="width:150px">${photoOpts(f)}</select>
+      <label class="btn btn-small upload">사진 올리기<input type="file" accept="image/*" capture="environment" data-upload="${esc(f.id)}" aria-label="${esc(label(f))} 사진 올리기"></label>
+    </div></td>
+    <td><input class="input" id="nm-${esc(f.id)}" data-field="name" value="${esc(f.name)}" aria-label="꽃 이름" style="width:110px"></td>
+    <td><input class="input" data-field="colorName" value="${esc(f.colorName)}" aria-label="색 이름" style="width:80px"></td>
+    <td><input type="color" data-field="color" value="${esc(f.color)}" aria-label="색 (추천에 쓰여요)"></td>
     <td><select class="input" data-field="cat" aria-label="분류">${opt(CATS, f.cat)}</select></td>
-    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="cost" value="${+f.cost || 0}" aria-label="사입가" style="width:100px"></td>
-    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="price" value="${+f.price || 0}" aria-label="판매가" style="width:100px"></td>
+    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="cost" value="${+f.cost || 0}" aria-label="사입가" style="width:96px"></td>
+    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="price" value="${+f.price || 0}" aria-label="판매가" style="width:96px"></td>
     ${marginCell(f)}
-    <td><input class="input num" type="number" min="0" step="1" data-field="stock" value="${+f.stock || 0}" aria-label="재고" style="width:76px"></td>
+    <td><input class="input num" type="number" min="0" step="1" data-field="stock" value="${+f.stock || 0}" aria-label="재고" style="width:72px"></td>
     <td><button class="btn btn-small" type="button" data-act="del-flower" data-id="${esc(f.id)}">삭제</button></td>
   </tr>`).join('');
   renderStats();
@@ -819,7 +950,7 @@ function renderOrders() {
     const acts = o.status === 'new' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="making">제작 시작</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>`
       : o.status === 'making' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="done">픽업 완료</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>` : '';
     return `<article class="order card">
-      ${bouquetSVG(o.items, o.wrap, `주문 ${o.id} 꽃다발`)}
+      ${bouquetCanvas(o.items, o.wrap, `주문 ${o.id} 꽃다발`, 1)}
       <div style="min-width:0">
         <div class="order-head"><b>${esc(o.id)}${o.example ? ' <span class="pill">예시</span>' : ''}</b><span class="status ${o.status}">${STATUS[o.status]}</span></div>
         <div class="who">${esc(o.name)} · ${esc(o.phone)} · 픽업 ${esc(o.pickup)} · 접수 ${time}</div>
@@ -830,19 +961,43 @@ function renderOrders() {
       </div>
     </article>`;
   }).join('') : '<div class="empty">아직 들어온 주문이 없어요. 손님 화면에서 다발을 만들어 주문을 보내 보세요.</div>';
+  paintJobs();
 }
 function renderSeller() { $('#markup').value = state.markup ?? 2.5; renderLedger(); renderOrders(); }
 
 /* ================= 화면 전환 ================= */
+let ready = false;
 function route() {
+  if (!ready) return;
   const seller = location.hash === '#seller';
   $('#view-make').hidden = seller;
   $('#view-seller').hidden = !seller;
   $('#tab-make').setAttribute('aria-current', seller ? 'false' : 'page');
   $('#tab-seller').setAttribute('aria-current', seller ? 'page' : 'false');
-  if (seller) renderSeller(); else renderMake();
+  if (seller) renderSeller(); else { renderMake(); if (lastRecs.length) renderRecs(lastRecs); }
 }
 window.addEventListener('hashchange', route);
+
+/* ================= 사진 올리기 ================= */
+async function processUpload(file) {
+  const url = URL.createObjectURL(file);
+  const img = await loadImg(url);
+  URL.revokeObjectURL(url);
+  if (!img) throw new Error('read');
+  const s = Math.min(img.naturalWidth, img.naturalHeight);
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, 256, 256);
+  const d = g.getImageData(90, 90, 76, 76).data; let r = 0, gg = 0, b = 0, n = 0;
+  for (let i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; b += d[i + 2]; n++; }
+  const color = '#' + [r, gg, b].map(v => Math.round(v / n).toString(16).padStart(2, '0')).join('');
+  g.globalCompositeOperation = 'destination-in';
+  const rg = g.createRadialGradient(128, 128, 78, 128, 128, 127); rg.addColorStop(0, 'rgba(0,0,0,1)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, 256, 256);
+  let data = c.toDataURL('image/webp', .8);
+  if (!data.startsWith('data:image/webp')) data = c.toDataURL('image/png');
+  return { data, color };
+}
 
 /* ================= 이벤트 ================= */
 document.addEventListener('click', e => {
@@ -859,7 +1014,7 @@ document.addEventListener('click', e => {
     const again = document.querySelector(`[data-act="${act}"][data-id="${CSS.escape(id)}"]`);
     if (again && !again.disabled) again.focus();
   } else if (act === 'use-rec') {
-    const r = ($('#recs')._recs || [])[+b.dataset.i]; if (!r) return;
+    const r = lastRecs[+b.dataset.i]; if (!r) return;
     state.cart = {};
     r.items.forEach(x => { const f = state.flowers.find(y => y.id === x.f.id); if (f) state.cart[f.id] = Math.min(x.n, f.stock); });
     $('#done').innerHTML = '';
@@ -886,9 +1041,10 @@ document.addEventListener('click', e => {
     state.flowers.forEach(f => { f.price = Math.round((+f.cost || 0) * mk / 100) * 100; });
     save(); renderLedger(); toast(`사입가의 ${mk}배로 판매가를 채웠어요.`);
   } else if (act === 'add-flower') {
-    const nf = { id: 'f' + Date.now().toString(36), name: '새 꽃', colorName: '', color: '#e9a0b5', shape: 'round', cat: 'main', cost: 1000, price: 2500, stock: 10 };
+    const nf = { id: 'f' + Date.now().toString(36), name: '새 꽃', colorName: '', photo: 'carnation-peach', color: PHOTOS['carnation-peach'].color, cat: 'main', cost: 1000, price: 2500, stock: 10 };
     state.flowers.push(nf); save(); renderLedger();
     const el = document.getElementById('nm-' + nf.id); if (el) { el.focus(); el.select(); }
+    toast('새 꽃을 추가했어요. 사진을 고르거나 직접 찍어 올려 주세요.');
   } else if (act === 'del-flower') {
     if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = '한 번 더'; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ''; b.textContent = '삭제'; } }, 3000); return; }
     state.flowers = state.flowers.filter(f => f.id !== id); delete state.cart[id];
@@ -899,14 +1055,30 @@ document.addEventListener('click', e => {
   }
 });
 
-document.getElementById('ledger').addEventListener('change', e => {
-  const el = e.target, tr = el.closest('tr'); if (!tr || !el.dataset.field) return;
+const ledgerEl = document.getElementById('ledger');
+ledgerEl.addEventListener('change', async e => {
+  const el = e.target, tr = el.closest('tr'); if (!tr) return;
   const f = state.flowers.find(x => x.id === tr.dataset.id); if (!f) return;
+  if (el.dataset.upload) {
+    const file = el.files && el.files[0]; if (!file) return;
+    try {
+      const { data, color } = await processUpload(file);
+      f.photo = 'custom'; f.photoData = data; f.color = color;
+      const i = await loadImg(data); IMG[imgKey(f)] = i;
+      save(); renderLedger(); toast(`${label(f)} 사진을 바꿨어요. 손님 화면에 바로 보여요.`);
+    } catch (err) { toast('사진을 읽지 못했어요. JPG나 PNG 사진으로 다시 올려 주세요.'); }
+    return;
+  }
+  if (!el.dataset.field) return;
   const k = el.dataset.field;
+  if (k === 'photo') {
+    if (el.value !== 'custom') { f.photo = el.value; delete f.photoData; f.color = PHOTOS[el.value].color; }
+    save(); renderLedger(); return;
+  }
   f[k] = ['cost', 'price', 'stock'].includes(k) ? Math.max(0, Math.round(+el.value || 0)) : el.value;
   if (k === 'stock' && (state.cart[f.id] || 0) > f.stock) { if (f.stock > 0) state.cart[f.id] = f.stock; else delete state.cart[f.id]; }
   save();
-  const mc = tr.querySelector('[data-margin]') || tr.querySelector('.margin-cell');
+  const mc = tr.querySelector('.margin-cell');
   if (mc) mc.outerHTML = marginCell(f);
   renderStats();
 });
@@ -960,8 +1132,12 @@ const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'nume
 $('#shelf-date').textContent = `${today} 사입분 · 예시 데이터`;
 $('#ledger-date').textContent = `${today} · 가격은 예시예요`;
 pickupOptions();
-route();
-renderRecs(recommend('birthday', 'bright', 50000));
+preload().then(() => {
+  ready = true;
+  route();
+  renderRecs(recommend('birthday', 'bright', 50000));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!cartTotals().stems) renderSide(); });
+});
 })();
 </script>
 </body>
