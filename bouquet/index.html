@@ -103,13 +103,15 @@ textarea.input { resize: vertical; min-height: 60px; }
 .stage canvas { display: block; width: 100%; max-width: 320px; height: auto; margin-inline: auto; aspect-ratio: 400 / 440; }
 .stage-cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .stage-cap .pen { font-family: var(--pen); font-size: 24px; line-height: 1; color: var(--amber); }
-.wraps { display: flex; gap: 8px; align-items: center; }
+.wraps { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
 .wraps .lab { font-size: 13px; color: var(--fg-dim); margin-right: 2px; }
 .wraps input { position: absolute; opacity: 0; pointer-events: none; }
 .wraps label { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-strong); cursor: pointer; display: block; }
 .wraps input:checked + label { border-color: var(--amber); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--amber); }
 .wraps input:focus-visible + label { outline: 2px solid var(--amber); outline-offset: 3px; }
 .illu-note { font-size: 12px; color: var(--fg-dim); text-align: center; margin-top: 4px; }
+.cardtoggle { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--fg-dim); margin-top: 6px; cursor: pointer; }
+.cardtoggle input { accent-color: var(--amber); width: 16px; height: 16px; }
 
 /* 계산서 */
 .bill h3 { font-size: 18px; margin-bottom: 10px; }
@@ -334,8 +336,10 @@ td.money input { text-align: right; }
             <input type="radio" name="wrap" id="wrap-white" value="white"><label for="wrap-white" title="화이트" style="background:#efe9df"></label>
             <input type="radio" name="wrap" id="wrap-black" value="black"><label for="wrap-black" title="블랙" style="background:#2b2725"></label>
             <input type="radio" name="wrap" id="wrap-pink" value="pink"><label for="wrap-pink" title="핑크" style="background:#e8c3c0"></label>
+            <input type="radio" name="wrap" id="wrap-pink-sheer" value="pink-sheer"><label for="wrap-pink-sheer" title="핑크 시폰 (+2,000원)" style="background:linear-gradient(135deg,#fff6f5 0 42%,#f5c3cd 58%)"></label>
           </div>
         </div>
+        <label class="cardtoggle"><input type="checkbox" id="card-toggle"> 메시지 카드 넣기 (무료)</label>
         <p class="illu-note">꽃 사진을 합성한 미리보기예요. 실제 꽃은 송이마다 색과 크기가 조금씩 달라요.</p>
       </div>
 
@@ -401,6 +405,7 @@ td.money input { text-align: right; }
 // 사진: 꽃마을에 난향가득 매장 사진에서 오려낸 컷. kind: head(꽃송이) / filler(잔꽃) / green(잎)
 const PHOTOS = {
   'rose-red':            { label: '장미 레드', kind: 'head', type: 'rose', size: 1.0, color: '#a3142a' },
+  'rose-pink':           { label: '장미 핑크', kind: 'head', type: 'rose', size: 1.12, color: '#f4a9bf', files: ['rose-pink-1', 'rose-pink-2'] },
   'rose-peach':          { label: '장미 피치', kind: 'head', type: 'rose', size: 1.15, color: '#f3a48f' },
   'rose-apricot':        { label: '장미 애프리콧', kind: 'head', type: 'rose', size: 1.0, color: '#f6b98a' },
   'lisianthus-pink':     { label: '리시안셔스 핑크', kind: 'head', type: 'lisianthus', size: .86, color: '#e5b9dc' },
@@ -408,13 +413,15 @@ const PHOTOS = {
   'lisianthus-butter':   { label: '리시안셔스 버터', kind: 'head', type: 'lisianthus', size: .95, color: '#f4ec9c' },
   'lisianthus-lime':     { label: '리시안셔스 라임', kind: 'head', type: 'lisianthus', size: .62, color: '#cbe25a' },
   'tulip-orange':        { label: '튤립 오렌지', kind: 'head', type: 'tulip', size: .78, color: '#ee7a2f' },
-  'tulip-pink':          { label: '튤립 핑크', kind: 'head', type: 'tulip', size: .78, color: '#f1b8bd' },
+  'tulip-pink':          { label: '튤립 핑크', kind: 'head', type: 'tulip', size: .86, color: '#f5b3c4', files: ['tulip-pink-1', 'tulip-pink-2', 'tulip-pink-3'] },
   'tulip-white':         { label: '튤립 화이트', kind: 'head', type: 'tulip', size: .8, color: '#f4f1e6' },
   'calla-magenta':       { label: '칼라 마젠타', kind: 'head', type: 'calla', size: .95, color: '#d0528e' },
+  'carnation-pink':      { label: '카네이션 핑크', kind: 'head', type: 'carnation', size: 1.0, color: '#f6aebf', files: ['carnation-pink-1', 'carnation-pink-2'] },
   'carnation-peach':     { label: '카네이션 피치', kind: 'head', type: 'carnation', size: .82, color: '#f7b98f' },
   'ranunculus-yellow':   { label: '라넌큘러스 옐로', kind: 'head', type: 'ranunculus', size: .88, color: '#f2b41c' },
   'hydrangea-blue':      { label: '수국 블루', kind: 'head', type: 'hydrangea', size: 1.55, color: '#a9c6ea' },
   'hellebore-green':     { label: '헬레보루스 그린', kind: 'head', type: 'hellebore', size: .78, color: '#b9d56a' },
+  'daisy':               { label: '데이지 (카모마일)', kind: 'filler', type: 'filler', size: 1.0, color: '#fffdf2', generated: true },
   'babys-breath':        { label: '안개꽃 (합성 이미지)', kind: 'filler', type: 'filler', size: 1.0, color: '#fbfaf5', generated: true },
   'eucalyptus':          { label: '유칼립투스', kind: 'green', type: 'green', axis: 'h', color: '#7f9a86' },
   'asparagus':           { label: '아스파라거스', kind: 'green', type: 'green', axis: 'v', color: '#b6cc58' }
@@ -422,35 +429,39 @@ const PHOTOS = {
 const PHOTO_BASE = 'flowers/';
 
 /* ================= 데이터 ================= */
-const KEY = 'holaflower-bouquet-v2';
+const KEY = 'holaflower-bouquet-v3';
 const CATS = { main: '메인 꽃', sub: '서브·필러', green: '그린' };
 const CAT_HINT = { main: '다발의 얼굴이 되는 꽃', sub: '볼륨과 사이를 채우는 꽃', green: '잎과 줄기' };
 const WRAPS = {
   kraft: { label: '크라프트', paper: '#c49a72', edge: '#9c7550', ribbon: '#6e4426' },
   white: { label: '화이트', paper: '#efe9df', edge: '#cdc3b4', ribbon: '#c9a15a' },
   black: { label: '블랙', paper: '#2d2927', edge: '#4d4642', ribbon: '#d9c39a' },
-  pink:  { label: '핑크', paper: '#e8c3c0', edge: '#c99d99', ribbon: '#a8325f' }
+  pink:  { label: '핑크', paper: '#e8c3c0', edge: '#c99d99', ribbon: '#a8325f' },
+  'pink-sheer': { label: '핑크 시폰', style: 'sheer', paper: '#f6bfcb', sheer: '#fff3f3', edge: '#e7a3b3', ribbon: '#f5a6ba', extra: 2000 }
 };
 const F = (id, name, colorName, photo, cat, cost, price, stock) => ({ id, name, colorName, photo, color: PHOTOS[photo].color, cat, cost, price, stock });
 const SAMPLE_FLOWERS = [
   F('f1', '장미', '레드', 'rose-red', 'main', 1400, 3500, 20),
+  F('f17', '장미', '핑크', 'rose-pink', 'main', 1400, 3500, 20),
   F('f2', '장미', '피치', 'rose-peach', 'main', 1600, 4000, 15),
   F('f3', '튤립', '오렌지', 'tulip-orange', 'main', 1200, 3000, 20),
   F('f4', '튤립', '핑크', 'tulip-pink', 'main', 1200, 3000, 15),
   F('f5', '튤립', '화이트', 'tulip-white', 'main', 1200, 3000, 15),
   F('f6', '칼라', '마젠타', 'calla-magenta', 'main', 1800, 4500, 8),
   F('f7', '라넌큘러스', '옐로', 'ranunculus-yellow', 'main', 1600, 4000, 10),
+  F('f18', '카네이션', '핑크', 'carnation-pink', 'main', 1000, 2500, 25),
   F('f8', '카네이션', '피치', 'carnation-peach', 'main', 1000, 2500, 25),
   F('f9', '리시안셔스', '라벤더', 'lisianthus-lavender', 'main', 1600, 4000, 12),
   F('f10', '리시안셔스', '핑크', 'lisianthus-pink', 'main', 1600, 4000, 10),
   F('f11', '수국', '블루', 'hydrangea-blue', 'sub', 3200, 8000, 5),
   F('f12', '리시안셔스', '라임', 'lisianthus-lime', 'sub', 1400, 3500, 12),
   F('f13', '헬레보루스', '그린', 'hellebore-green', 'sub', 1800, 4500, 6),
+  F('f19', '데이지', '화이트', 'daisy', 'sub', 1000, 2500, 10),
   F('f14', '안개꽃', '화이트', 'babys-breath', 'sub', 800, 2000, 10),
   F('f15', '유칼립투스', '실버', 'eucalyptus', 'green', 800, 2000, 15),
   F('f16', '아스파라거스', '그린', 'asparagus', 'green', 600, 1500, 20)
 ];
-const SAMPLE_CART = { f2: 3, f9: 2, f8: 3, f14: 2, f15: 3 };
+const SAMPLE_CART = { f17: 5, f18: 3, f4: 3, f19: 2, f14: 2, f15: 3 };
 
 function snapshotItems(cart, flowers) {
   return Object.entries(cart).map(([id, count]) => {
@@ -464,12 +475,12 @@ function snapshotItems(cart, flowers) {
 function sampleOrder(flowers) {
   const items = snapshotItems({ f1: 7, f14: 3, f15: 3 }, flowers);
   const flowerTotal = items.reduce((s, i) => s + i.price * i.count, 0);
-  const fee = wrapFee(items.reduce((s, i) => s + i.count, 0));
+  const fee = wrapFee(items.reduce((s, i) => s + i.count, 0), 'black');
   return { id: 'A-1001', example: true, createdAt: new Date().toISOString(), name: '김○○', phone: '010-****-1234', pickup: '오늘 18:00', memo: '리본에 "결혼 10주년 축하해"', wrap: 'black', items, flowerTotal, wrapFee: fee, total: flowerTotal + fee, status: 'new' };
 }
 function freshState() {
   const flowers = SAMPLE_FLOWERS.map(f => ({ ...f }));
-  return { flowers, cart: { ...SAMPLE_CART }, wrap: 'kraft', orders: [sampleOrder(flowers)], seq: 1001, markup: 2.5 };
+  return { flowers, cart: { ...SAMPLE_CART }, wrap: 'pink-sheer', card: true, orders: [sampleOrder(flowers)], seq: 1001, markup: 2.5 };
 }
 function load() {
   try {
@@ -488,7 +499,8 @@ let state = load();
 const $ = s => document.querySelector(s);
 const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-function wrapFee(n) { return n === 0 ? 0 : n <= 10 ? 3000 : n <= 20 ? 5000 : 7000; }
+function wrapFee(n, wrap) { return n === 0 ? 0 : (n <= 10 ? 3000 : n <= 20 ? 5000 : 7000) + ((WRAPS[wrap] && WRAPS[wrap].extra) || 0); }
+const hexA = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
 function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function rngFrom(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 function shuffle(arr, rng) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
@@ -516,6 +528,7 @@ function hasJong(word) { const c = String(word).trim().slice(-1).charCodeAt(0); 
 function jongIsRieul(word) { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 8; }
 const eul = w => w + (hasJong(w) ? '을' : '를');
 const iga = w => w + (hasJong(w) ? '이' : '가');
+const wa = w => w + (hasJong(w) ? '과' : '와');
 const ro = w => w + (hasJong(w) && !jongIsRieul(w) ? '으로' : '로');
 const label = f => `${f.colorName ? f.colorName + ' ' : ''}${f.name}`;
 const available = f => Math.max(0, (f.stock || 0) - (state.cart[f.id] || 0));
@@ -529,13 +542,15 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 const IMG = {};
 let BB_URL = '';
 function loadImg(src) { return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
-function imgKey(it) { return it.photo === 'custom' ? 'c:' + it.id + ':' + hashStr(it.photoData || '') : it.photo; }
-function imgSrc(it) { return it.photo === 'custom' ? it.photoData : it.photo === 'babys-breath' ? BB_URL : PHOTO_BASE + it.photo + '.webp'; }
-function getImg(it) {
-  const k = imgKey(it);
+const GEN = {};
+const filesOf = it => it.photo === 'custom' ? [null] : ((PHOTOS[it.photo] && PHOTOS[it.photo].files) || [it.photo]);
+function imgKey(it, v) { if (it.photo === 'custom') return 'c:' + it.id + ':' + hashStr(it.photoData || ''); const fs = filesOf(it); return fs[(v || 0) % fs.length]; }
+function imgSrc(it, v) { if (it.photo === 'custom') return it.photoData; if (GEN[it.photo]) return GEN[it.photo]; return PHOTO_BASE + imgKey(it, v) + '.webp'; }
+function getImg(it, v) {
+  const k = imgKey(it, v);
   if (IMG[k] === undefined) {
     IMG[k] = null;
-    loadImg(imgSrc(it)).then(i => { IMG[k] = i; if (i) route(); });
+    loadImg(imgSrc(it, v)).then(i => { IMG[k] = i; if (i) route(); });
   }
   return IMG[k];
 }
@@ -554,20 +569,46 @@ function makeBabysBreath() {
   };
   for (let i = 0; i < 5; i++) branch(130, 250, -Math.PI / 2 + (i - 2) * .32 + (rng() - .5) * .2, 70 + rng() * 25, 0);
   tips.forEach(([x, y]) => {
-    for (let k = 0; k < 3; k++) {
-      const fx = x + (rng() - .5) * 12, fy = y + (rng() - .5) * 12, r = 3 + rng() * 3.2;
+    for (let k = 0; k < 5; k++) {
+      const fx = x + (rng() - .5) * 14, fy = y + (rng() - .5) * 14, r = 2 + rng() * 2.4;
       const gr = g.createRadialGradient(fx - r * .3, fy - r * .3, r * .2, fx, fy, r);
       gr.addColorStop(0, '#ffffff'); gr.addColorStop(.7, '#f3f1ea'); gr.addColorStop(1, '#d8d4c8');
       g.fillStyle = gr; g.beginPath(); g.arc(fx, fy, r, 0, Math.PI * 2); g.fill();
     }
   });
   BB_URL = c.toDataURL('image/png');
+  GEN['babys-breath'] = BB_URL;
   IMG['babys-breath'] = c;
+}
+// 데이지 묶음: 실제 데이지 사진을 가는 줄기 위에 얹어 만듭니다
+function makeDaisy(imgs) {
+  const c = document.createElement('canvas'); c.width = c.height = 260;
+  const g = c.getContext('2d'); const rng = rngFrom(11); const tips = [];
+  const branch = (x, y, a, len, depth) => {
+    const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len;
+    g.strokeStyle = 'rgba(96,130,70,.95)'; g.lineWidth = Math.max(.9, 2.4 - depth * .6);
+    g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo((x + x2) / 2 + (rng() - .5) * 8, (y + y2) / 2, x2, y2); g.stroke();
+    if (depth >= 2) { tips.push([x2, y2]); return; }
+    const n = 2 + Math.floor(rng() * 2);
+    for (let i = 0; i < n; i++) branch(x2, y2, a + (rng() - .5) * 1.3, len * (.6 + rng() * .25), depth + 1);
+  };
+  for (let i = 0; i < 3; i++) branch(130, 252, -Math.PI / 2 + (i - 1) * .4 + (rng() - .5) * .2, 80 + rng() * 20, 0);
+  const ok = imgs.filter(Boolean);
+  tips.forEach(([x, y], i) => {
+    const im = ok[i % ok.length]; if (!im) return;
+    const s = 30 + rng() * 18, h = s * im.height / im.width;
+    g.save(); g.translate(x, y); g.rotate((rng() - .5) * .9); g.drawImage(im, -s / 2, -h / 2, s, h); g.restore();
+  });
+  GEN.daisy = c.toDataURL('image/png');
+  IMG.daisy = c;
 }
 async function preload() {
   makeBabysBreath();
-  const keys = Object.keys(PHOTOS).filter(k => !PHOTOS[k].generated);
-  await Promise.all(keys.map(k => loadImg(PHOTO_BASE + k + '.webp').then(i => { IMG[k] = i; })));
+  const files = [];
+  Object.entries(PHOTOS).forEach(([k, p]) => { if (!p.generated) (p.files || [k]).forEach(f => files.push(f)); });
+  const daisyFiles = ['daisy-1', 'daisy-2', 'daisy-3', 'daisy-4', 'daisy-5'];
+  await Promise.all([...files, ...daisyFiles].map(f => loadImg(PHOTO_BASE + f + '.webp').then(i => { IMG[f] = i; })));
+  makeDaisy(daisyFiles.map(f => IMG[f]));
   const customs = state.flowers.filter(f => f.photo === 'custom' && f.photoData);
   await Promise.all(customs.map(f => loadImg(f.photoData).then(i => { IMG[imgKey(f)] = i; })));
 }
@@ -604,8 +645,10 @@ function paperFill(ctx, path, base, edge, tip, topPts, front) {
   ctx.restore();
   ctx.save(); ctx.strokeStyle = edge; ctx.lineWidth = 1.2; ctx.stroke(path); ctx.restore();
 }
-function drawRibbon(ctx, x, y, color) {
-  const dark = shade(color, -.35), light = shade(color, .35);
+function drawRibbon(ctx, x, y, color, scale) {
+  const k = scale || 1;
+  ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.translate(-x, -y);
+  const dark = shade(color, -.2), light = shade(color, .5);
   const satin = (x0, x1) => { const g = ctx.createLinearGradient(x0, y - 12, x1, y + 12); g.addColorStop(0, dark); g.addColorStop(.45, light); g.addColorStop(.6, color); g.addColorStop(1, dark); return g; };
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
@@ -617,10 +660,62 @@ function drawRibbon(ctx, x, y, color) {
   [[-1, -18], [1, 18]].forEach(([dir]) => {
     ctx.save(); ctx.translate(x + dir * 15, y); ctx.rotate(dir * -.32);
     ctx.fillStyle = satin(-18, 18); ctx.beginPath(); ctx.ellipse(0, 0, 18, 9.5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(dir * -3, 1, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = hexA(shade(color, -.4), .35); ctx.beginPath(); ctx.ellipse(dir * -3, 1, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   });
   ctx.fillStyle = satin(x - 7, x + 7); ctx.beginPath(); ctx.ellipse(x, y + 1, 6.5, 7.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+function drawSheerBack(ctx, cx, cy, R, W, rng) {
+  const bx = cx, by = cy + R * .95, n = 11;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1), a = -Math.PI / 2 + (t - .5) * Math.PI * .86 + (rng() - .5) * .08;
+    const len = R * (1.95 + (i % 2 ? .12 : 0) + rng() * .1) * (1 - Math.abs(t - .5) * .35), wid = R * (.9 + rng() * .16);
+    ctx.save(); ctx.translate(bx, by); ctx.rotate(a + Math.PI / 2);
+    const p = new Path2D();
+    p.moveTo(-wid * .26, 0); p.lineTo(-wid * .52, -len * .8);
+    p.bezierCurveTo(-wid * .36, -len * 1.03, -wid * .12, -len * .93, 0, -len);
+    p.bezierCurveTo(wid * .15, -len * 1.06, wid * .38, -len * .95, wid * .52, -len * .8);
+    p.lineTo(wid * .26, 0); p.closePath();
+    const col = i % 3 === 1 ? W.sheer : W.paper;
+    const g = ctx.createLinearGradient(0, 0, 0, -len);
+    g.addColorStop(0, hexA(col, .1)); g.addColorStop(.55, hexA(col, .62)); g.addColorStop(1, hexA(shade(col, .25), .9));
+    ctx.fillStyle = g; ctx.fill(p);
+    ctx.strokeStyle = hexA(W.edge, .55); ctx.lineWidth = 1.2; ctx.stroke(p);
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = .8; ctx.stroke(p);
+    ctx.strokeStyle = hexA(shade(col, -.14), .3); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-wid * .05, -len * .2); ctx.quadraticCurveTo(wid * .08, -len * .6, wid * .02, -len * .97); ctx.stroke();
+    ctx.restore();
+  }
+}
+function drawSheerFront(ctx, cx, cy, R, tip, W) {
+  const fy = cy + R * .46;
+  const sheet = (dir, col, alpha, drop) => {
+    const p = new Path2D();
+    p.moveTo(cx + dir * 6, tip[1]);
+    p.lineTo(cx + dir * (R + 36), fy - R * .2 + drop);
+    p.bezierCurveTo(cx + dir * R * .82, fy + R * .06 + drop, cx + dir * R * .5, fy - R * .04 + drop, cx + dir * R * .24, fy + R * .12 + drop);
+    p.bezierCurveTo(cx + dir * R * .06, fy + R * .22 + drop, cx - dir * R * .08, fy + R * .15 + drop, cx - dir * R * .24, fy + R * .26 + drop);
+    p.closePath();
+    const g = ctx.createLinearGradient(0, fy - R * .2, 0, tip[1]);
+    g.addColorStop(0, hexA(shade(col, .18), alpha)); g.addColorStop(.5, hexA(col, alpha)); g.addColorStop(1, hexA(shade(col, -.1), Math.min(1, alpha + .08)));
+    ctx.save(); ctx.shadowColor = 'rgba(140,70,85,.2)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = -2; ctx.fillStyle = g; ctx.fill(p); ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.4; ctx.stroke(p);
+    ctx.strokeStyle = hexA(shade(col, -.16), .28); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx + dir * 10, tip[1] - 8); ctx.quadraticCurveTo(cx + dir * R * .5, fy + R * .3 + drop, cx + dir * R * .8, fy - R * .02 + drop); ctx.stroke();
+  };
+  sheet(-1, W.paper, .94, 0); sheet(1, W.paper, .9, 0);
+  sheet(1, W.sheer, .62, R * .1); sheet(-1, W.sheer, .58, R * .12);
+}
+function drawCard(ctx, x, y, rot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+  ctx.fillStyle = '#fffaf7'; ctx.fillRect(-58, -40, 116, 80);
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = 'rgba(0,0,0,.06)'; ctx.strokeRect(-58, -40, 116, 80);
+  ctx.fillStyle = '#3b302b'; ctx.font = '28px "Nanum Pen Script", "Gowun Batang", cursive'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('For you ♡', 0, 0);
   ctx.restore();
 }
 function drawEmpty(ctx) {
@@ -630,7 +725,7 @@ function drawEmpty(ctx) {
   ctx.fillStyle = dim; ctx.font = '17px "Gowun Dodum", sans-serif'; ctx.textAlign = 'center';
   ctx.fillText('꽃을 담으면', 200, 196); ctx.fillText('여기에 다발이 그려져요', 200, 222); ctx.restore();
 }
-function drawBouquet(canvas, items, wrapKey) {
+function drawBouquet(canvas, items, wrapKey, card) {
   const ctx = canvas.getContext('2d'); const S = canvas.width / 400;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.setTransform(S, 0, 0, S, 0, 0);
   const W = WRAPS[wrapKey] || WRAPS.kraft;
@@ -646,6 +741,7 @@ function drawBouquet(canvas, items, wrapKey) {
   const tip = [cx, Math.min(432, cy + R * 1.22 + 66)];
 
   // 뒤 포장지
+  const sheer = W.style === 'sheer';
   const L = [cx - R - 30, cy - R * .22], Rt = [cx + R + 30, cy - R * .22], T = [cx, cy - R * .98 - 22];
   const back = new Path2D();
   back.moveTo(tip[0], tip[1]); back.lineTo(L[0], L[1]);
@@ -653,12 +749,16 @@ function drawBouquet(canvas, items, wrapKey) {
   back.quadraticCurveTo(cx + R * .7, cy - R - 40, Rt[0], Rt[1]); back.closePath();
   const topPts = [];
   for (let i = 0; i <= 8; i++) { const t = i / 8; const a = Math.PI + t * Math.PI; topPts.push([cx + Math.cos(a) * (R + 30), cy - R * .22 + Math.sin(a) * (R * .8 + 22)]); }
-  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8; ctx.fillStyle = W.paper; ctx.fill(back); ctx.restore();
-  paperFill(ctx, back, W.paper, W.edge, tip, topPts, false);
+  if (sheer) drawSheerBack(ctx, cx, cy, R, W, rng);
+  else {
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8; ctx.fillStyle = W.paper; ctx.fill(back); ctx.restore();
+    paperFill(ctx, back, W.paper, W.edge, tip, topPts, false);
+  }
+  if (card) drawCard(ctx, cx + R * .5, cy - R * 1.02, .07);
 
   // 잎 그늘 (꽃 사이 깊이감)
   const dg = ctx.createRadialGradient(cx, cy, R * .1, cx, cy, R * .92);
-  dg.addColorStop(0, 'rgba(26,36,20,.8)'); dg.addColorStop(.65, 'rgba(34,48,26,.5)'); dg.addColorStop(1, 'rgba(34,48,26,0)');
+  dg.addColorStop(0, sheer ? 'rgba(40,54,30,.62)' : 'rgba(26,36,20,.8)'); dg.addColorStop(.65, sheer ? 'rgba(52,70,40,.32)' : 'rgba(34,48,26,.5)'); dg.addColorStop(1, 'rgba(34,48,26,0)');
   ctx.fillStyle = dg; ctx.beginPath(); ctx.ellipse(cx, cy + 4, R * .92, R * .76, 0, 0, Math.PI * 2); ctx.fill();
 
   // 그린: 가장자리에서 바깥으로 뻗게
@@ -680,10 +780,15 @@ function drawBouquet(canvas, items, wrapKey) {
   // 잔꽃
   fillers.forEach((f, i) => {
     const img = getImg(f); if (!img) return;
-    const a = -Math.PI / 2 + ((i * .618 + rng() * .3) % 1 - .5) * Math.PI * 1.2, r = R * (.66 + rng() * .3);
-    const size = 74 + rng() * 18;
+    // 가장자리로 삐져나온 가지
+    let a = -Math.PI / 2 + ((i * .618 + rng() * .3) % 1 - .5) * Math.PI * 1.2, r = R * (.66 + rng() * .3);
+    let size = 74 + rng() * 18;
     ctx.save(); ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .8); ctx.rotate(a + Math.PI / 2 + (rng() - .5) * .6);
     ctx.drawImage(img, -size / 2, -size * .8, size, size); ctx.restore();
+    // 꽃 사이 틈을 채우는 가지
+    a = rng() * Math.PI * 2; r = R * (.15 + rng() * .5); size = 66 + rng() * 16;
+    ctx.save(); ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .78); ctx.rotate((rng() - .5) * 1.2);
+    ctx.drawImage(img, -size / 2, -size / 2, size, size); ctx.restore();
   });
 
   // 꽃송이: 황금각 배열, 앞(아래)에 있는 꽃이 위로 오도록
@@ -692,15 +797,17 @@ function drawBouquet(canvas, items, wrapKey) {
     return { s, x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) * .8 - (1 - tt) * 10 };
   }).sort((p, q) => p.y - q.y);
   const BASE = 76;
-  placed.forEach(p => {
-    const img = getImg(p.s); if (!img) return;
+  placed.forEach((p, idx) => {
+    const v = (hashStr(p.s.id) + idx) % filesOf(p.s).length;
+    const img = getImg(p.s, v); if (!img) return;
     const m = meta(p.s);
+    const flip = rng() < .5 ? -1 : 1;
     const iw = img.width || img.naturalWidth, ih = img.height || img.naturalHeight;
     const d = BASE * (m.size || 1) * (.9 + rng() * .2);
     const k = d / Math.max(iw, ih);
     const w = iw * k, h = ih * k;
-    const tilt = m.type === 'tulip' || m.type === 'calla' ? ((p.x - cx) / R) * .45 + (rng() - .5) * .25 : (rng() - .5) * .7;
-    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(tilt);
+    const tilt = m.type === 'tulip' || m.type === 'calla' ? ((p.x - cx) / R) * .45 + (rng() - .5) * .25 : (rng() - .5) * .45;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(tilt); ctx.scale(flip, 1);
     ctx.shadowColor = 'rgba(0,0,0,.42)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
     if (m.custom) {
       ctx.beginPath(); ctx.arc(0, 0, d * .5, 0, Math.PI * 2); ctx.closePath();
@@ -711,6 +818,11 @@ function drawBouquet(canvas, items, wrapKey) {
 
   // 앞 포장지 두 장 + 리본
   const fy = cy + R * .5;
+  if (sheer) {
+    drawSheerFront(ctx, cx, cy, R, tip, W);
+    drawRibbon(ctx, cx, fy + (tip[1] - fy) * .5, W.ribbon, 1.75);
+    return;
+  }
   const left = new Path2D(); left.moveTo(tip[0], tip[1] + 4); left.lineTo(cx - R - 26, fy - 8); left.quadraticCurveTo(cx - R * .35, fy + R * .24, cx + 24, fy + 4); left.closePath();
   const right = new Path2D(); right.moveTo(tip[0], tip[1] + 4); right.lineTo(cx + R + 26, fy - 8); right.quadraticCurveTo(cx + R * .35, fy + R * .24, cx - 24, fy + 4); right.closePath();
   ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = -2; ctx.fillStyle = W.paper; ctx.fill(left); ctx.restore();
@@ -722,18 +834,18 @@ function drawBouquet(canvas, items, wrapKey) {
 }
 let bqSeq = 0;
 const bqJobs = new Map();
-function bouquetCanvas(items, wrap, title, scale) {
+function bouquetCanvas(items, wrap, title, scale, card) {
   const id = 'bq' + (++bqSeq);
-  bqJobs.set(id, { items, wrap });
+  bqJobs.set(id, { items, wrap, card });
   const sc = scale || 1;
   return `<canvas id="${id}" width="${400 * sc}" height="${440 * sc}" role="img" aria-label="${esc(title || '꽃다발 미리보기')}"></canvas>`;
 }
 function paintJobs() {
-  for (const [id, job] of bqJobs) { const c = document.getElementById(id); if (c) drawBouquet(c, job.items, job.wrap); }
+  for (const [id, job] of bqJobs) { const c = document.getElementById(id); if (c) drawBouquet(c, job.items, job.wrap, job.card); }
   bqJobs.clear();
 }
 function photoTag(f, cls) {
-  const src = f.photo === 'custom' ? f.photoData : f.photo === 'babys-breath' ? BB_URL : PHOTO_BASE + f.photo + '.webp';
+  const src = imgSrc(f, 0);
   return `<img class="${cls}" src="${esc(src)}" alt="${esc(label(f))} 사진" loading="lazy">`;
 }
 
@@ -770,14 +882,14 @@ function allocate(parts, budget) {
     it.n = Math.min(n, it.f.stock);
   });
   const count = () => items.reduce((s, i) => s + i.n, 0);
-  const total = () => items.reduce((s, i) => s + i.n * i.f.price, 0) + wrapFee(count());
+  const total = () => items.reduce((s, i) => s + i.n * i.f.price, 0) + wrapFee(count(), state.wrap);
   let guard = 0;
   while (total() > budget && guard++ < 300) {
     const c = items.filter(i => i.role === 'focal' ? i.n > 1 : i.n > 0).sort((a, b) => b.n * b.f.price - a.n * a.f.price)[0];
     if (!c) break;
     c.n -= c.role === 'focal' && c.n >= 3 ? 2 : 1;
   }
-  const order = ['focal', 'second', 'green', 'filler', 'green2'];
+  const order = ['focal', 'second', 'third', 'green', 'filler', 'green2'];
   let idx = 0, misses = 0;
   guard = 0;
   while (misses < order.length && guard++ < 300) {
@@ -805,13 +917,15 @@ function recommend(occ, mood, budget) {
       .map(x => ({ ...x, sc: x.sc + (m.mix ? (family(x.f.color) !== family(focal.color) ? 1 : 0) : (family(x.f.color) === family(focal.color) ? .6 : 0)) }))
       .sort((a, b) => b.sc - a.sc);
     const second = (pool[v === 2 && pool.length > 1 ? 1 : 0] || {}).f;
+    const third = mood === 'natural' ? null : (pool.find(x => x.f.cat === 'main' && (!second || x.f.id !== second.id) && (m.mix || family(x.f.color) === family(focal.color))) || {}).f;
     const filler = (fillers.find(x => !second || x.f.id !== second.id) || {}).f;
     const green = (greens[0] || {}).f, green2 = m.greens ? (greens[1] || {}).f : null;
     const nat = mood === 'natural';
     const parts = [
-      { f: focal, role: 'focal', ratio: nat ? .36 : .46 },
-      second && { f: second, role: 'second', ratio: nat ? .2 : .24 },
-      filler && { f: filler, role: 'filler', ratio: nat ? .16 : .12 },
+      { f: focal, role: 'focal', ratio: nat ? .36 : third ? .38 : .46 },
+      second && { f: second, role: 'second', ratio: nat ? .2 : third ? .2 : .24 },
+      third && { f: third, role: 'third', ratio: .14 },
+      filler && { f: filler, role: 'filler', ratio: nat ? .16 : .1 },
       green && { f: green, role: 'green', ratio: nat ? .16 : .18 },
       green2 && { f: green2, role: 'green2', ratio: .12 }
     ].filter(Boolean);
@@ -823,7 +937,8 @@ function recommend(occ, mood, budget) {
     const sec = r.items.find(i => i.role === 'second');
     const rest = r.items.filter(i => i.role === 'filler' || i.role.startsWith('green')).map(i => i.f.name);
     let why = `${o.label}에는 ${iga(o.why)} 잘 어울려요. 오늘 들어온 ${eul(label(focal))} 중심에 두고`;
-    why += sec ? ` ${ro(label(sec.f))} 색을 받쳤어요.` : ' 한 가지 색으로 깔끔하게 모았어요.';
+    const thr = r.items.find(i => i.role === 'third');
+    why += sec ? (thr ? ` ${wa(label(sec.f))} ${ro(label(thr.f))} 색을 받쳤어요.` : ` ${ro(label(sec.f))} 색을 받쳤어요.`) : ' 한 가지 색으로 깔끔하게 모았어요.';
     if (rest.length) why += ` ${ro(rest.join('·'))} 사이와 가장자리를 채웠어요.`;
     why += ` 메인 꽃은 ${r.items[0].n}송이, 홀수로 넣어 모양이 자연스러워요.`;
     if (budget - r.total >= 3000) why += ` 예산보다 ${won(budget - r.total)} 적게 나왔어요.`;
@@ -838,7 +953,7 @@ function cartTotals() {
   const items = cartItems();
   const stems = items.reduce((s, i) => s + i.count, 0);
   const flowerTotal = items.reduce((s, i) => s + i.count * i.price, 0);
-  const fee = wrapFee(stems);
+  const fee = wrapFee(stems, state.wrap);
   return { items, stems, flowerTotal, fee, total: flowerTotal + fee };
 }
 function renderShelf() {
@@ -868,7 +983,8 @@ function renderShelf() {
 }
 function renderSide() {
   const t = cartTotals();
-  $('#preview').innerHTML = bouquetCanvas(t.items, state.wrap, '내가 고른 꽃다발 미리보기', 2);
+  $('#preview').innerHTML = bouquetCanvas(t.items, state.wrap, '내가 고른 꽃다발 미리보기', 2, state.card);
+  $('#card-toggle').checked = !!state.card;
   $('#stem-count').textContent = `${t.stems}송이`;
   const wrapInput = document.getElementById('wrap-' + state.wrap);
   if (wrapInput) wrapInput.checked = true;
@@ -877,7 +993,7 @@ function renderSide() {
     : '<li><span></span><span class="sub">아직 담은 꽃이 없어요.</span><span></span></li>';
   $('#totals').innerHTML = `
     <div><span>꽃값</span><span class="num">${won(t.flowerTotal)}</span></div>
-    <div><span>포장비 (${WRAPS[state.wrap].label}, ${t.stems <= 10 ? '10송이 이하' : t.stems <= 20 ? '11~20송이' : '21송이 이상'})</span><span class="num">${won(t.fee)}</span></div>
+    <div><span>포장비 (${WRAPS[state.wrap].label}${WRAPS[state.wrap].extra ? ' +' + won(WRAPS[state.wrap].extra) : ''}, ${t.stems <= 10 ? '10송이 이하' : t.stems <= 20 ? '11~20송이' : '21송이 이상'})</span><span class="num">${won(t.fee)}</span></div>
     <div class="grand"><span>합계</span><b class="num">${won(t.total)}</b></div>`;
   $('#mbar-text').innerHTML = `${t.stems}송이 · <b class="num">${won(t.total)}</b>`;
   $('#order-btn').disabled = t.stems < 3;
@@ -950,13 +1066,13 @@ function renderOrders() {
     const acts = o.status === 'new' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="making">제작 시작</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>`
       : o.status === 'making' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="done">픽업 완료</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>` : '';
     return `<article class="order card">
-      ${bouquetCanvas(o.items, o.wrap, `주문 ${o.id} 꽃다발`, 1)}
+      ${bouquetCanvas(o.items, o.wrap, `주문 ${o.id} 꽃다발`, 1, o.card)}
       <div style="min-width:0">
         <div class="order-head"><b>${esc(o.id)}${o.example ? ' <span class="pill">예시</span>' : ''}</b><span class="status ${o.status}">${STATUS[o.status]}</span></div>
         <div class="who">${esc(o.name)} · ${esc(o.phone)} · 픽업 ${esc(o.pickup)} · 접수 ${time}</div>
         ${o.memo ? `<div class="memo">${esc(o.memo)}</div>` : ''}
         <ul>${o.items.map(i => `<li><span class="dot" style="background:${esc(i.color)}"></span>${esc(label(i))} <span class="stems num">${i.count}송이</span></li>`).join('')}</ul>
-        <div class="sum"><span>총 <b class="num" style="font-family:var(--sans);font-size:15px;color:var(--fg)">${stems}송이</b> · ${esc(WRAPS[o.wrap]?.label || '')} 포장</span><b class="num">${won(o.total)}</b></div>
+        <div class="sum"><span>총 <b class="num" style="font-family:var(--sans);font-size:15px;color:var(--fg)">${stems}송이</b> · ${esc(WRAPS[o.wrap]?.label || '')} 포장${o.card ? ' · 카드' : ''}</span><b class="num">${won(o.total)}</b></div>
         <div class="acts">${acts}</div>
       </div>
     </article>`;
@@ -1085,6 +1201,7 @@ ledgerEl.addEventListener('change', async e => {
 $('#markup').addEventListener('change', e => { state.markup = parseFloat(e.target.value) || 2.5; save(); });
 
 document.querySelectorAll('input[name="wrap"]').forEach(r => r.addEventListener('change', () => { state.wrap = r.value; save(); renderSide(); }));
+$('#card-toggle').addEventListener('change', e => { state.card = e.target.checked; save(); renderSide(); });
 
 const budget = $('#ai-budget');
 budget.addEventListener('input', () => { $('#ai-budget-out').textContent = won(+budget.value); });
@@ -1118,7 +1235,7 @@ $('#order-form').addEventListener('submit', e => {
   if (short) { msg.textContent = `${label(short)} 재고가 부족해요. 송이 수를 줄여 주세요.`; return; }
   msg.textContent = ''; delete msg.dataset.sticky;
   state.seq = (state.seq || 1001) + 1;
-  const order = { id: 'A-' + state.seq, createdAt: new Date().toISOString(), name, phone, pickup: $('#ord-pickup').value, memo: $('#ord-memo').value.trim(), wrap: state.wrap, items: t.items, flowerTotal: t.flowerTotal, wrapFee: t.fee, total: t.total, status: 'new' };
+  const order = { id: 'A-' + state.seq, createdAt: new Date().toISOString(), name, phone, pickup: $('#ord-pickup').value, memo: $('#ord-memo').value.trim(), wrap: state.wrap, card: !!state.card, items: t.items, flowerTotal: t.flowerTotal, wrapFee: t.fee, total: t.total, status: 'new' };
   t.items.forEach(i => { const f = state.flowers.find(x => x.id === i.id); if (f) f.stock -= i.count; });
   state.orders.push(order); state.cart = {};
   save(); renderMake();
@@ -1136,7 +1253,7 @@ preload().then(() => {
   ready = true;
   route();
   renderRecs(recommend('birthday', 'bright', 50000));
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!cartTotals().stems) renderSide(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#view-make').hidden) renderSide(); });
 });
 })();
 </script>
