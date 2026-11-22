@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>난향가득 꽃다발 공방</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="오늘 들어온 꽃으로 직접 꽃다발을 조합하고 가격을 확인하는 꽃마을에 난향가득의 꽃다발 공방 (프로토타입)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+/* 레이아웃: 손님 화면은 왼쪽 '오늘의 꽃 선반', 오른쪽 고정 패널 '다발 미리보기 + 계산서'.
+   사장님 화면은 사입 장부 표와 주문 카드. 본 사이트의 '밤의 꽃집' 팔레트를 그대로 씁니다. */
+:root {
+  --bg: #17110d;
+  --surface: #211812;
+  --surface-2: #2c211a;
+  --line: rgba(243, 231, 211, .13);
+  --line-strong: rgba(243, 231, 211, .3);
+  --fg: #f3e7d3;
+  --fg-dim: #b5a58c;
+  --amber: #f0a948;
+  --on-amber: #2a1a05;
+  --leaf: #9cc084;
+  --alert: #ee8f6d;
+  --glow: rgba(240, 169, 72, .16);
+  --pen: "Nanum Pen Script", "Gowun Batang", cursive;
+  --serif: "Gowun Batang", "Noto Serif KR", serif;
+  --sans: "Gowun Dodum", "Noto Sans KR", system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f2eee9; --surface: #fffdf9; --surface-2: #f6efe6;
+    --line: rgba(52, 36, 22, .12); --line-strong: rgba(52, 36, 22, .28);
+    --fg: #271c13; --fg-dim: #6c5d4b; --amber: #a3600f; --on-amber: #fff8ee;
+    --leaf: #4c7a38; --alert: #b4472a; --glow: rgba(240, 169, 72, .24);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f2eee9; --surface: #fffdf9; --surface-2: #f6efe6;
+  --line: rgba(52, 36, 22, .12); --line-strong: rgba(52, 36, 22, .28);
+  --fg: #271c13; --fg-dim: #6c5d4b; --amber: #a3600f; --on-amber: #fff8ee;
+  --leaf: #4c7a38; --alert: #b4472a; --glow: rgba(240, 169, 72, .24);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+h1, h2, h3, p { margin: 0; }
+h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.3; text-wrap: balance; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.wrap { max-width: 1240px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* ---------- 상단 ---------- */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top-in { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; padding-block: 12px; }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand b { font-family: var(--pen); font-weight: 400; font-size: 28px; line-height: 1; }
+.brand b em { font-style: normal; color: var(--amber); }
+.brand span { font-size: 13px; color: var(--fg-dim); letter-spacing: .04em; }
+.tabs { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.tabs a { padding: 7px 16px; border-radius: 999px; text-decoration: none; color: var(--fg-dim); font-size: 14px; white-space: nowrap; }
+.tabs a[aria-current="page"] { background: var(--amber); color: var(--on-amber); font-weight: 700; }
+.pill { display: inline-block; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 12px; color: var(--fg-dim); white-space: nowrap; }
+
+/* ---------- 공통 ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.card-pad { padding: 20px; }
+.eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--amber); }
+.sec-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.sec-title h2 { font-size: 22px; }
+.hint { font-size: 13px; color: var(--fg-dim); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; text-decoration: none; transition: background .15s, border-color .15s, transform .15s; }
+.btn:hover { border-color: var(--amber); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--amber); color: var(--on-amber); border-color: var(--amber); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-small { padding: 6px 12px; font-size: 13px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field label, .field .lab { font-size: 13px; color: var(--fg-dim); }
+.input, select.input, textarea.input { width: 100%; padding: 9px 11px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+textarea.input { resize: vertical; min-height: 60px; }
+
+/* ---------- 손님 화면 ---------- */
+.make { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(330px, 1fr); grid-template-areas: "ai side" "shelf side" "form side"; gap: 24px 28px; padding-block: 24px 48px; align-items: start; }
+.ai { grid-area: ai; }
+.shelf { grid-area: shelf; }
+.orderbox { grid-area: form; }
+.side { grid-area: side; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 78px); display: grid; gap: 16px; max-height: calc(100vh - 100px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+
+/* 미리보기 */
+.stage { position: relative; border-radius: 14px; border: 1px solid var(--line); background: radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 65%), var(--surface); padding: 14px 14px 12px; }
+.stage canvas { display: block; width: 100%; max-width: 320px; height: auto; margin-inline: auto; aspect-ratio: 400 / 440; }
+.stage-cap { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.stage-cap .pen { font-family: var(--pen); font-size: 24px; line-height: 1; color: var(--amber); }
+.wraps { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.wraps .lab { font-size: 13px; color: var(--fg-dim); margin-right: 2px; }
+.wraps input { position: absolute; opacity: 0; pointer-events: none; }
+.wraps label { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-strong); cursor: pointer; display: block; }
+.wraps input:checked + label { border-color: var(--amber); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--amber); }
+.wraps input:focus-visible + label { outline: 2px solid var(--amber); outline-offset: 3px; }
+.illu-note { font-size: 12px; color: var(--fg-dim); text-align: center; margin-top: 4px; }
+.cardtoggle { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--fg-dim); margin-top: 6px; cursor: pointer; }
+.cardtoggle input { accent-color: var(--amber); width: 16px; height: 16px; }
+
+/* 계산서 */
+.bill h3 { font-size: 18px; margin-bottom: 10px; }
+.lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lines li { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line-strong); }
+.lines .sub { color: var(--fg-dim); }
+.totals { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line-strong); display: grid; gap: 4px; }
+.totals div { display: flex; justify-content: space-between; font-size: 14px; color: var(--fg-dim); }
+.totals .grand { color: var(--fg); font-size: 15px; align-items: baseline; }
+.totals .grand b { font-family: var(--serif); font-size: 26px; color: var(--amber); }
+.order-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bill .btn { width: 100%; margin-top: 14px; }
+.order-form .full { grid-column: 1 / -1; }
+.form-msg { font-size: 13px; color: var(--alert); min-height: 1em; }
+.done-box { margin-top: 14px; padding: 14px; border-radius: 10px; border: 1px solid var(--leaf); display: grid; gap: 8px; }
+.done-box b { color: var(--leaf); }
+
+/* AI 추천 */
+.ai-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 10px 12px; align-items: end; }
+.budget-out { font-family: var(--serif); font-weight: 700; color: var(--amber); }
+input[type="range"] { width: 100%; accent-color: var(--amber); }
+.recs { display: grid; gap: 12px; margin-top: 16px; }
+.rec { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 4px 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); align-items: start; }
+.rec canvas { grid-row: 1 / span 5; width: 128px; height: auto; display: block; aspect-ratio: 400 / 440; }
+.rec .btn { justify-self: start; margin-top: 4px; }
+.rec ul { display: flex; flex-wrap: wrap; gap: 2px 14px; list-style: none; padding: 0 !important; }
+.rec h4 { margin: 0; font-family: var(--serif); font-size: 16px; line-height: 1.35; }
+.rec .price { font-weight: 700; color: var(--amber); }
+.rec ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--fg-dim); }
+.rec p { font-size: 13px; color: var(--fg-dim); }
+.ai-note { margin-top: 10px; font-size: 12.5px; color: var(--fg-dim); }
+
+/* 꽃 선반 */
+.group + .group { margin-top: 22px; }
+.group h3 { font-size: 15px; font-family: var(--sans); font-weight: 700; color: var(--fg-dim); margin-bottom: 10px; display: flex; gap: 8px; align-items: baseline; }
+.group h3 span { font-weight: 400; font-size: 12.5px; }
+.flowers { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 10px; }
+.fl { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; gap: 2px 10px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.fl.on { border-color: var(--amber); }
+.fl.out { opacity: .5; }
+.fl .ph { grid-row: 1 / span 2; width: 56px; height: 56px; object-fit: contain; border-radius: 10px; background: radial-gradient(circle at 50% 45%, var(--surface-2), transparent 72%); }
+.fl .nm { font-weight: 700; font-size: 14.5px; line-height: 1.3; min-width: 0; }
+.fl .nm small { display: block; font-weight: 400; font-size: 12.5px; color: var(--fg-dim); }
+.fl .meta { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 6px; }
+.fl .pr, .fl .nm small { white-space: nowrap; }
+.fl .pr { font-size: 13px; }
+.fl .left { font-size: 12px; color: var(--fg-dim); white-space: nowrap; }
+.fl .left.low { color: var(--alert); }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 999px; }
+.stepper button { width: 30px; height: 30px; border: 0; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; border-radius: 999px; }
+.stepper button:hover:not([disabled]) { background: var(--surface-2); }
+.stepper button[disabled] { opacity: .35; cursor: not-allowed; }
+.stepper output { min-width: 22px; text-align: center; font-weight: 700; }
+
+/* 모바일 하단 바 */
+.mbar { display: none; }
+
+/* ---------- 사장님 화면 ---------- */
+.seller { padding-block: 24px 48px; display: grid; gap: 28px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--fg-dim); }
+.stats b { color: var(--fg); font-family: var(--serif); font-size: 18px; margin-left: 4px; }
+.ledger-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
+.ledger-tools .field { width: 120px; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 14px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+th { font-weight: 400; font-size: 12.5px; color: var(--fg-dim); background: var(--surface-2); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+td .input { padding: 6px 8px; }
+td input[type="color"] { width: 38px; height: 32px; padding: 2px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+td.money input { text-align: right; }
+.margin-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.photo-cell { display: flex; align-items: center; gap: 8px; }
+.photo-cell img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: var(--surface-2); flex: none; }
+.photo-cell .upload { position: relative; overflow: hidden; }
+.photo-cell .upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.loading { padding: 40px; text-align: center; color: var(--fg-dim); }
+.margin-cell.bad { color: var(--alert); }
+.orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; }
+.order { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; padding: 14px; }
+.order canvas { width: 150px; height: auto; aspect-ratio: 400 / 440; border-radius: 10px; background: radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 65%), var(--surface-2); }
+.order-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.order-head b { font-family: var(--serif); font-size: 17px; }
+.status { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid currentColor; }
+.status.new { color: var(--amber); }
+.status.making { color: var(--fg); }
+.status.done { color: var(--leaf); }
+.status.canceled { color: var(--fg-dim); text-decoration: line-through; }
+.order .who { font-size: 13.5px; color: var(--fg-dim); margin-top: 4px; }
+.order ul { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: 14px; }
+.order ul li { display: flex; gap: 8px; align-items: center; }
+.order .stems { font-weight: 700; }
+.order .sum { margin-top: 8px; display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; border-top: 1px dashed var(--line-strong); padding-top: 8px; }
+.order .sum b { font-family: var(--serif); font-size: 19px; color: var(--amber); }
+.order .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.order .memo { margin-top: 6px; font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--surface-2); }
+.empty { padding: 28px; text-align: center; color: var(--fg-dim); border: 1px dashed var(--line-strong); border-radius: 12px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 14px; z-index: 50; box-shadow: 0 8px 30px rgba(0, 0, 0, .35); max-width: calc(100vw - 32px); }
+
+@media (max-width: 960px) {
+  .make { grid-template-columns: minmax(0, 1fr); grid-template-areas: none; padding-bottom: 96px; }
+  .side { display: contents; }
+  .stage { order: 0; }
+  .ai { order: 1; grid-area: auto; }
+  .shelf { order: 2; grid-area: auto; }
+  .bill { order: 3; }
+  .orderbox { order: 4; grid-area: auto; }
+  .top { position: static; }
+  .rec { grid-template-columns: 96px minmax(0, 1fr); }
+  .rec canvas { width: 96px; }
+  .ai-form { grid-template-columns: 1fr 1fr; }
+  .ai-form .go { grid-column: 1 / -1; }
+  .mbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: var(--surface); border-top: 1px solid var(--line-strong); }
+  .mbar b { font-family: var(--serif); color: var(--amber); font-size: 18px; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 520px) {
+  .order-form { grid-template-columns: 1fr; }
+  .order { grid-template-columns: 1fr; }
+  .order canvas { width: 100%; max-width: 220px; margin-inline: auto; }
+  .brand span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand"><b>꽃마을에 <em>난향가득</em></b><span>꽃다발 공방</span></div>
+    <nav class="tabs" aria-label="화면 선택">
+      <a href="#make" id="tab-make">꽃다발 만들기</a>
+      <a href="#seller" id="tab-seller">사장님 화면</a>
+    </nav>
+    <span class="pill">프로토타입 · 이 브라우저에만 저장</span>
+  </div>
+</header>
+
+<main>
+  <!-- 손님 화면 -->
+  <div id="view-make" class="wrap make">
+    <section class="ai card card-pad" aria-labelledby="ai-title">
+      <div class="sec-title">
+        <h2 id="ai-title">AI 추천 <span class="pill">데모</span></h2>
+        <span class="hint">오늘 들어온 꽃 안에서만 골라요</span>
+      </div>
+      <form class="ai-form" id="ai-form">
+        <div class="field">
+          <label for="ai-occ">용도</label>
+          <select class="input" id="ai-occ">
+            <option value="birthday">생일</option>
+            <option value="love">기념일·프로포즈</option>
+            <option value="congrats">승진·개업</option>
+            <option value="thanks">감사</option>
+            <option value="comfort">위로·병문안</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ai-mood">분위기</label>
+          <select class="input" id="ai-mood">
+            <option value="bright">화사하게</option>
+            <option value="romantic">로맨틱하게</option>
+            <option value="calm">차분하게</option>
+            <option value="natural">내추럴하게</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ai-budget">예산 <output class="budget-out num" id="ai-budget-out">50,000원</output></label>
+          <input type="range" id="ai-budget" min="20000" max="150000" step="5000" value="50000">
+        </div>
+        <button class="btn btn-primary go" type="submit">추천 받기</button>
+      </form>
+      <div class="recs" id="recs"></div>
+      <p class="ai-note">지금은 정해진 규칙(용도별 색, 홀수 메인 꽃, 예산 배분)으로 조합을 만듭니다. 실제 서비스에서는 AI 모델이 이 재고 목록 안에서만 고르도록 연결합니다.</p>
+    </section>
+
+    <section class="shelf" aria-labelledby="shelf-title">
+      <div class="sec-title">
+        <h2 id="shelf-title">오늘 들어온 꽃</h2>
+        <span class="hint" id="shelf-date"></span>
+      </div>
+      <div id="shelf"><div class="loading">꽃 사진을 불러오는 중…</div></div>
+    </section>
+
+    <section class="orderbox card card-pad" id="orderbox" aria-labelledby="form-title">
+      <div class="sec-title"><h2 id="form-title">주문서</h2><span class="hint">사장님이 확인 후 연락드려요</span></div>
+      <form class="order-form" id="order-form" novalidate>
+        <div class="field">
+          <label for="ord-name">주문자 이름</label>
+          <input class="input" id="ord-name" autocomplete="name" placeholder="홍길동">
+        </div>
+        <div class="field">
+          <label for="ord-phone">연락처</label>
+          <input class="input" id="ord-phone" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000">
+        </div>
+        <div class="field full">
+          <label for="ord-pickup">픽업 시간</label>
+          <select class="input" id="ord-pickup"></select>
+        </div>
+        <div class="field full">
+          <label for="ord-memo">요청 사항 (선택)</label>
+          <textarea class="input" id="ord-memo" rows="2" placeholder="메시지 카드 문구, 리본 문구 등"></textarea>
+        </div>
+        <p class="form-msg full" id="form-msg" role="alert"></p>
+        <button class="btn btn-primary full" type="submit" id="order-btn">사장님께 주문 보내기</button>
+      </form>
+      <div id="done"></div>
+    </section>
+
+    <aside class="side" aria-label="내 꽃다발">
+      <div class="stage">
+        <div id="preview"></div>
+        <div class="stage-cap">
+          <span class="pen" id="stem-count">0송이</span>
+          <div class="wraps" role="radiogroup" aria-label="포장지">
+            <span class="lab">포장</span>
+            <input type="radio" name="wrap" id="wrap-kraft" value="kraft"><label for="wrap-kraft" title="크라프트" style="background:#c9a27c"></label>
+            <input type="radio" name="wrap" id="wrap-white" value="white"><label for="wrap-white" title="화이트" style="background:#efe9df"></label>
+            <input type="radio" name="wrap" id="wrap-black" value="black"><label for="wrap-black" title="블랙" style="background:#2b2725"></label>
+            <input type="radio" name="wrap" id="wrap-pink" value="pink"><label for="wrap-pink" title="핑크" style="background:#e8c3c0"></label>
+            <input type="radio" name="wrap" id="wrap-pink-sheer" value="pink-sheer"><label for="wrap-pink-sheer" title="핑크 시폰 (+2,000원)" style="background:linear-gradient(135deg,#fff6f5 0 42%,#f5c3cd 58%)"></label>
+          </div>
+        </div>
+        <label class="cardtoggle"><input type="checkbox" id="card-toggle"> 메시지 카드 넣기 (무료)</label>
+        <p class="illu-note">꽃 사진을 합성한 미리보기예요. 실제 꽃은 송이마다 색과 크기가 조금씩 달라요.</p>
+      </div>
+
+      <section class="bill card card-pad" id="bill" aria-labelledby="bill-title">
+        <h3 id="bill-title">계산서</h3>
+        <ul class="lines" id="lines"></ul>
+        <div class="totals" id="totals"></div>
+        <button class="btn btn-primary" type="button" data-act="to-form" id="to-form-btn">주문서 작성하기</button>
+      </section>
+    </aside>
+
+    <div class="mbar" id="mbar">
+      <span id="mbar-text">0송이</span>
+      <button class="btn btn-primary btn-small" type="button" data-act="to-bill">계산서 보기</button>
+    </div>
+  </div>
+
+  <!-- 사장님 화면 -->
+  <div id="view-seller" class="wrap seller" hidden>
+    <section aria-labelledby="ledger-title">
+      <div class="sec-title">
+        <h2 id="ledger-title">오늘의 사입</h2>
+        <span class="hint" id="ledger-date"></span>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="ledger-tools" style="margin-top:14px">
+        <div class="field">
+          <label for="markup">판매가 배율</label>
+          <input class="input num" id="markup" type="number" min="1" max="6" step="0.1" value="2.5">
+        </div>
+        <button class="btn btn-small" type="button" data-act="bulk-price">사입가 × 배율로 판매가 채우기</button>
+        <button class="btn btn-small" type="button" data-act="add-flower">+ 꽃 추가</button>
+        <button class="btn btn-small" type="button" data-act="reset" id="reset-btn">예시 데이터로 되돌리기</button>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>사진</th><th>꽃 이름</th><th>색 이름</th><th>색</th><th>분류</th><th>사입가/송이</th><th>판매가/송이</th><th>마진</th><th>재고</th><th></th></tr>
+          </thead>
+          <tbody id="ledger"></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:8px">여기서 바꾼 재고와 가격은 손님 화면에 바로 반영됩니다. 주문이 들어오면 재고가 자동으로 줄어요. 오늘 들어온 꽃을 직접 찍어 올리면 손님 화면과 다발 미리보기에 그 사진이 쓰입니다.</p>
+    </section>
+
+    <section aria-labelledby="orders-title">
+      <div class="sec-title">
+        <h2 id="orders-title">들어온 주문</h2>
+        <span class="hint" id="orders-count"></span>
+      </div>
+      <div class="orders" id="orders"></div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= 꽃 사진 라이브러리 ================= */
+// 사진: 꽃마을에 난향가득 매장 사진에서 오려낸 컷. kind: head(꽃송이) / filler(잔꽃) / green(잎)
+const PHOTOS = {
+  'rose-red':            { label: '장미 레드', kind: 'head', type: 'rose', size: 1.0, color: '#a3142a' },
+  'rose-pink':           { label: '장미 핑크', kind: 'head', type: 'rose', size: 1.12, color: '#f4a9bf', files: ['rose-pink-1', 'rose-pink-2'] },
+  'rose-peach':          { label: '장미 피치', kind: 'head', type: 'rose', size: 1.15, color: '#f3a48f' },
+  'rose-apricot':        { label: '장미 애프리콧', kind: 'head', type: 'rose', size: 1.0, color: '#f6b98a' },
+  'lisianthus-pink':     { label: '리시안셔스 핑크', kind: 'head', type: 'lisianthus', size: .86, color: '#e5b9dc' },
+  'lisianthus-lavender': { label: '리시안셔스 라벤더', kind: 'head', type: 'lisianthus', size: .9, color: '#c7b3e6' },
+  'lisianthus-butter':   { label: '리시안셔스 버터', kind: 'head', type: 'lisianthus', size: .95, color: '#f4ec9c' },
+  'lisianthus-lime':     { label: '리시안셔스 라임', kind: 'head', type: 'lisianthus', size: .62, color: '#cbe25a' },
+  'tulip-orange':        { label: '튤립 오렌지', kind: 'head', type: 'tulip', size: .78, color: '#ee7a2f' },
+  'tulip-pink':          { label: '튤립 핑크', kind: 'head', type: 'tulip', size: .86, color: '#f5b3c4', files: ['tulip-pink-1', 'tulip-pink-2', 'tulip-pink-3'] },
+  'tulip-white':         { label: '튤립 화이트', kind: 'head', type: 'tulip', size: .8, color: '#f4f1e6' },
+  'calla-magenta':       { label: '칼라 마젠타', kind: 'head', type: 'calla', size: .95, color: '#d0528e' },
+  'carnation-pink':      { label: '카네이션 핑크', kind: 'head', type: 'carnation', size: 1.0, color: '#f6aebf', files: ['carnation-pink-1', 'carnation-pink-2'] },
+  'carnation-peach':     { label: '카네이션 피치', kind: 'head', type: 'carnation', size: .82, color: '#f7b98f' },
+  'ranunculus-yellow':   { label: '라넌큘러스 옐로', kind: 'head', type: 'ranunculus', size: .88, color: '#f2b41c' },
+  'hydrangea-blue':      { label: '수국 블루', kind: 'head', type: 'hydrangea', size: 1.55, color: '#a9c6ea' },
+  'hellebore-green':     { label: '헬레보루스 그린', kind: 'head', type: 'hellebore', size: .78, color: '#b9d56a' },
+  'daisy':               { label: '데이지 (카모마일)', kind: 'filler', type: 'filler', size: 1.0, color: '#fffdf2', generated: true },
+  'babys-breath':        { label: '안개꽃 (합성 이미지)', kind: 'filler', type: 'filler', size: 1.0, color: '#fbfaf5', generated: true },
+  'eucalyptus':          { label: '유칼립투스', kind: 'green', type: 'green', axis: 'h', color: '#7f9a86' },
+  'asparagus':           { label: '아스파라거스', kind: 'green', type: 'green', axis: 'v', color: '#b6cc58' }
+};
+const PHOTO_BASE = 'flowers/';
+
+/* ================= 데이터 ================= */
+const KEY = 'holaflower-bouquet-v3';
+const CATS = { main: '메인 꽃', sub: '서브·필러', green: '그린' };
+const CAT_HINT = { main: '다발의 얼굴이 되는 꽃', sub: '볼륨과 사이를 채우는 꽃', green: '잎과 줄기' };
+const WRAPS = {
+  kraft: { label: '크라프트', paper: '#c49a72', edge: '#9c7550', ribbon: '#6e4426' },
+  white: { label: '화이트', paper: '#efe9df', edge: '#cdc3b4', ribbon: '#c9a15a' },
+  black: { label: '블랙', paper: '#2d2927', edge: '#4d4642', ribbon: '#d9c39a' },
+  pink:  { label: '핑크', paper: '#e8c3c0', edge: '#c99d99', ribbon: '#a8325f' },
+  'pink-sheer': { label: '핑크 시폰', style: 'sheer', paper: '#f6bfcb', sheer: '#fff3f3', edge: '#e7a3b3', ribbon: '#f5a6ba', extra: 2000 }
+};
+const F = (id, name, colorName, photo, cat, cost, price, stock) => ({ id, name, colorName, photo, color: PHOTOS[photo].color, cat, cost, price, stock });
+const SAMPLE_FLOWERS = [
+  F('f1', '장미', '레드', 'rose-red', 'main', 1400, 3500, 20),
+  F('f17', '장미', '핑크', 'rose-pink', 'main', 1400, 3500, 20),
+  F('f2', '장미', '피치', 'rose-peach', 'main', 1600, 4000, 15),
+  F('f3', '튤립', '오렌지', 'tulip-orange', 'main', 1200, 3000, 20),
+  F('f4', '튤립', '핑크', 'tulip-pink', 'main', 1200, 3000, 15),
+  F('f5', '튤립', '화이트', 'tulip-white', 'main', 1200, 3000, 15),
+  F('f6', '칼라', '마젠타', 'calla-magenta', 'main', 1800, 4500, 8),
+  F('f7', '라넌큘러스', '옐로', 'ranunculus-yellow', 'main', 1600, 4000, 10),
+  F('f18', '카네이션', '핑크', 'carnation-pink', 'main', 1000, 2500, 25),
+  F('f8', '카네이션', '피치', 'carnation-peach', 'main', 1000, 2500, 25),
+  F('f9', '리시안셔스', '라벤더', 'lisianthus-lavender', 'main', 1600, 4000, 12),
+  F('f10', '리시안셔스', '핑크', 'lisianthus-pink', 'main', 1600, 4000, 10),
+  F('f11', '수국', '블루', 'hydrangea-blue', 'sub', 3200, 8000, 5),
+  F('f12', '리시안셔스', '라임', 'lisianthus-lime', 'sub', 1400, 3500, 12),
+  F('f13', '헬레보루스', '그린', 'hellebore-green', 'sub', 1800, 4500, 6),
+  F('f19', '데이지', '화이트', 'daisy', 'sub', 1000, 2500, 10),
+  F('f14', '안개꽃', '화이트', 'babys-breath', 'sub', 800, 2000, 10),
+  F('f15', '유칼립투스', '실버', 'eucalyptus', 'green', 800, 2000, 15),
+  F('f16', '아스파라거스', '그린', 'asparagus', 'green', 600, 1500, 20)
+];
+const SAMPLE_CART = { f17: 5, f18: 3, f4: 3, f19: 2, f14: 2, f15: 3 };
+
+function snapshotItems(cart, flowers) {
+  return Object.entries(cart).map(([id, count]) => {
+    const f = flowers.find(x => x.id === id);
+    if (!f || count <= 0) return null;
+    const it = { id, name: f.name, colorName: f.colorName, color: f.color, photo: f.photo, cat: f.cat, price: f.price, count };
+    if (f.photo === 'custom') it.photoData = f.photoData;
+    return it;
+  }).filter(Boolean);
+}
+function sampleOrder(flowers) {
+  const items = snapshotItems({ f1: 7, f14: 3, f15: 3 }, flowers);
+  const flowerTotal = items.reduce((s, i) => s + i.price * i.count, 0);
+  const fee = wrapFee(items.reduce((s, i) => s + i.count, 0), 'black');
+  return { id: 'A-1001', example: true, createdAt: new Date().toISOString(), name: '김○○', phone: '010-****-1234', pickup: '오늘 18:00', memo: '리본에 "결혼 10주년 축하해"', wrap: 'black', items, flowerTotal, wrapFee: fee, total: flowerTotal + fee, status: 'new' };
+}
+function freshState() {
+  const flowers = SAMPLE_FLOWERS.map(f => ({ ...f }));
+  return { flowers, cart: { ...SAMPLE_CART }, wrap: 'pink-sheer', card: true, orders: [sampleOrder(flowers)], seq: 1001, markup: 2.5 };
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.flowers)) return s; }
+  } catch (e) { /* 저장소를 못 쓰면 예시로 시작 */ }
+  return freshState();
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { toast('브라우저 저장 공간이 부족해요. 올린 사진 수를 줄여 주세요.'); }
+}
+let state = load();
+
+/* ================= 유틸 ================= */
+const $ = s => document.querySelector(s);
+const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function wrapFee(n, wrap) { return n === 0 ? 0 : (n <= 10 ? 3000 : n <= 20 ? 5000 : 7000) + ((WRAPS[wrap] && WRAPS[wrap].extra) || 0); }
+const hexA = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rngFrom(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle(arr, rng) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+function rgb(hex) { let h = String(hex).replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function shade(hex, amt) { return '#' + rgb(hex).map(c => amt < 0 ? c * (1 + amt) : c + (255 - c) * amt).map(c => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0')).join(''); }
+function hsl(hex) {
+  const [r, g, b] = rgb(hex).map(c => c / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); const l = (mx + mn) / 2;
+  let h = 0, s = 0;
+  if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+  return { h, s, l };
+}
+function family(hex) {
+  const { h, s, l } = hsl(hex);
+  if (l > .9) return 'white';
+  if (s < .12) return l > .6 ? 'white' : 'green';
+  if (h < 15 || h >= 345) return l > .72 ? 'pink' : 'red';
+  if (h < 40) return l > .72 ? 'peach' : 'orange';
+  if (h < 68) return 'yellow';
+  if (h < 170) return 'green';
+  if (h < 260) return 'blue';
+  if (h < 300) return 'purple';
+  return 'pink';
+}
+function hasJong(word) { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0; }
+function jongIsRieul(word) { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 8; }
+const eul = w => w + (hasJong(w) ? '을' : '를');
+const iga = w => w + (hasJong(w) ? '이' : '가');
+const wa = w => w + (hasJong(w) ? '과' : '와');
+const ro = w => w + (hasJong(w) && !jongIsRieul(w) ? '으로' : '로');
+const label = f => `${f.colorName ? f.colorName + ' ' : ''}${f.name}`;
+const available = f => Math.max(0, (f.stock || 0) - (state.cart[f.id] || 0));
+const meta = it => it.photo === 'custom'
+  ? { kind: it.cat === 'green' ? 'green' : 'head', type: 'custom', size: .9, axis: 'v', custom: true }
+  : (PHOTOS[it.photo] || PHOTOS['rose-peach']);
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+
+/* ================= 이미지 불러오기 ================= */
+const IMG = {};
+let BB_URL = '';
+function loadImg(src) { return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
+const GEN = {};
+const filesOf = it => it.photo === 'custom' ? [null] : ((PHOTOS[it.photo] && PHOTOS[it.photo].files) || [it.photo]);
+function imgKey(it, v) { if (it.photo === 'custom') return 'c:' + it.id + ':' + hashStr(it.photoData || ''); const fs = filesOf(it); return fs[(v || 0) % fs.length]; }
+function imgSrc(it, v) { if (it.photo === 'custom') return it.photoData; if (GEN[it.photo]) return GEN[it.photo]; return PHOTO_BASE + imgKey(it, v) + '.webp'; }
+function getImg(it, v) {
+  const k = imgKey(it, v);
+  if (IMG[k] === undefined) {
+    IMG[k] = null;
+    loadImg(imgSrc(it, v)).then(i => { IMG[k] = i; if (i) route(); });
+  }
+  return IMG[k];
+}
+// 안개꽃: 아주 작은 꽃이라 사진 대신 사실감 있게 직접 그려 씁니다
+function makeBabysBreath() {
+  const c = document.createElement('canvas'); c.width = c.height = 260;
+  const g = c.getContext('2d'); const rng = rngFrom(7);
+  const tips = [];
+  const branch = (x, y, a, len, depth) => {
+    const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len;
+    g.strokeStyle = `rgba(${110 + depth * 10},${140 + depth * 8},${90},.9)`; g.lineWidth = Math.max(.6, 2.2 - depth * .5);
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+    if (depth >= 3) { tips.push([x2, y2]); return; }
+    const n = 2 + Math.floor(rng() * 2);
+    for (let i = 0; i < n; i++) branch(x2, y2, a + (rng() - .5) * 1.5, len * (.55 + rng() * .25), depth + 1);
+  };
+  for (let i = 0; i < 5; i++) branch(130, 250, -Math.PI / 2 + (i - 2) * .32 + (rng() - .5) * .2, 70 + rng() * 25, 0);
+  tips.forEach(([x, y]) => {
+    for (let k = 0; k < 5; k++) {
+      const fx = x + (rng() - .5) * 14, fy = y + (rng() - .5) * 14, r = 2 + rng() * 2.4;
+      const gr = g.createRadialGradient(fx - r * .3, fy - r * .3, r * .2, fx, fy, r);
+      gr.addColorStop(0, '#ffffff'); gr.addColorStop(.7, '#f3f1ea'); gr.addColorStop(1, '#d8d4c8');
+      g.fillStyle = gr; g.beginPath(); g.arc(fx, fy, r, 0, Math.PI * 2); g.fill();
+    }
+  });
+  BB_URL = c.toDataURL('image/png');
+  GEN['babys-breath'] = BB_URL;
+  IMG['babys-breath'] = c;
+}
+// 데이지 묶음: 실제 데이지 사진을 가는 줄기 위에 얹어 만듭니다
+function makeDaisy(imgs) {
+  const c = document.createElement('canvas'); c.width = c.height = 260;
+  const g = c.getContext('2d'); const rng = rngFrom(11); const tips = [];
+  const branch = (x, y, a, len, depth) => {
+    const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len;
+    g.strokeStyle = 'rgba(96,130,70,.95)'; g.lineWidth = Math.max(.9, 2.4 - depth * .6);
+    g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo((x + x2) / 2 + (rng() - .5) * 8, (y + y2) / 2, x2, y2); g.stroke();
+    if (depth >= 2) { tips.push([x2, y2]); return; }
+    const n = 2 + Math.floor(rng() * 2);
+    for (let i = 0; i < n; i++) branch(x2, y2, a + (rng() - .5) * 1.3, len * (.6 + rng() * .25), depth + 1);
+  };
+  for (let i = 0; i < 3; i++) branch(130, 252, -Math.PI / 2 + (i - 1) * .4 + (rng() - .5) * .2, 80 + rng() * 20, 0);
+  const ok = imgs.filter(Boolean);
+  tips.forEach(([x, y], i) => {
+    const im = ok[i % ok.length]; if (!im) return;
+    const s = 30 + rng() * 18, h = s * im.height / im.width;
+    g.save(); g.translate(x, y); g.rotate((rng() - .5) * .9); g.drawImage(im, -s / 2, -h / 2, s, h); g.restore();
+  });
+  GEN.daisy = c.toDataURL('image/png');
+  IMG.daisy = c;
+}
+async function preload() {
+  makeBabysBreath();
+  const files = [];
+  Object.entries(PHOTOS).forEach(([k, p]) => { if (!p.generated) (p.files || [k]).forEach(f => files.push(f)); });
+  const daisyFiles = ['daisy-1', 'daisy-2', 'daisy-3', 'daisy-4', 'daisy-5'];
+  await Promise.all([...files, ...daisyFiles].map(f => loadImg(PHOTO_BASE + f + '.webp').then(i => { IMG[f] = i; })));
+  makeDaisy(daisyFiles.map(f => IMG[f]));
+  const customs = state.flowers.filter(f => f.photo === 'custom' && f.photoData);
+  await Promise.all(customs.map(f => loadImg(f.photoData).then(i => { IMG[imgKey(f)] = i; })));
+}
+
+/* ================= 꽃다발 합성 (캔버스) ================= */
+let grain = null;
+function grainPattern(ctx) {
+  if (!grain) {
+    const c = document.createElement('canvas'); c.width = c.height = 140; const g = c.getContext('2d'); const d = g.createImageData(140, 140); const r = rngFrom(3);
+    for (let i = 0; i < d.data.length; i += 4) { const v = r() < .5 ? 0 : 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 10 + r() * 22; }
+    g.putImageData(d, 0, 0); grain = c;
+  }
+  return ctx.createPattern(grain, 'repeat');
+}
+function paperFill(ctx, path, base, edge, tip, topPts, front) {
+  ctx.save();
+  ctx.fillStyle = base; ctx.fill(path);
+  ctx.clip(path);
+  // 주름: 꼭짓점에서 위쪽 가장자리로 퍼지는 면
+  for (let i = 0; i < topPts.length - 1; i++) {
+    const [ax, ay] = topPts[i], [bx, by] = topPts[i + 1];
+    const g = ctx.createLinearGradient(ax, ay, bx, by);
+    const light = i % 2 === 0;
+    g.addColorStop(0, light ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.10)');
+    g.addColorStop(1, light ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(tip[0], tip[1]); ctx.lineTo(ax, ay); ctx.lineTo(bx, by); ctx.closePath(); ctx.fill();
+  }
+  // 아래로 갈수록 어둡게
+  const v = ctx.createLinearGradient(0, topPts[0][1] - 40, 0, tip[1]);
+  v.addColorStop(0, front ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,0)');
+  v.addColorStop(1, 'rgba(0,0,0,.22)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, 400, 440);
+  ctx.fillStyle = grainPattern(ctx); ctx.fillRect(0, 0, 400, 440);
+  ctx.restore();
+  ctx.save(); ctx.strokeStyle = edge; ctx.lineWidth = 1.2; ctx.stroke(path); ctx.restore();
+}
+function drawRibbon(ctx, x, y, color, scale) {
+  const k = scale || 1;
+  ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.translate(-x, -y);
+  const dark = shade(color, -.2), light = shade(color, .5);
+  const satin = (x0, x1) => { const g = ctx.createLinearGradient(x0, y - 12, x1, y + 12); g.addColorStop(0, dark); g.addColorStop(.45, light); g.addColorStop(.6, color); g.addColorStop(1, dark); return g; };
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+  // 꼬리
+  ctx.fillStyle = satin(x - 30, x + 30);
+  ctx.beginPath(); ctx.moveTo(x - 4, y + 4); ctx.quadraticCurveTo(x - 16, y + 30, x - 24, y + 50); ctx.lineTo(x - 13, y + 47); ctx.quadraticCurveTo(x - 7, y + 26, x + 2, y + 6); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + 4, y + 4); ctx.quadraticCurveTo(x + 15, y + 28, x + 21, y + 52); ctx.lineTo(x + 31, y + 46); ctx.quadraticCurveTo(x + 17, y + 22, x + 6, y + 4); ctx.closePath(); ctx.fill();
+  // 고리
+  [[-1, -18], [1, 18]].forEach(([dir]) => {
+    ctx.save(); ctx.translate(x + dir * 15, y); ctx.rotate(dir * -.32);
+    ctx.fillStyle = satin(-18, 18); ctx.beginPath(); ctx.ellipse(0, 0, 18, 9.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = hexA(shade(color, -.4), .35); ctx.beginPath(); ctx.ellipse(dir * -3, 1, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+  ctx.fillStyle = satin(x - 7, x + 7); ctx.beginPath(); ctx.ellipse(x, y + 1, 6.5, 7.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+function drawSheerBack(ctx, cx, cy, R, W, rng) {
+  const bx = cx, by = cy + R * .95, n = 11;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1), a = -Math.PI / 2 + (t - .5) * Math.PI * .86 + (rng() - .5) * .08;
+    const len = R * (1.95 + (i % 2 ? .12 : 0) + rng() * .1) * (1 - Math.abs(t - .5) * .35), wid = R * (.9 + rng() * .16);
+    ctx.save(); ctx.translate(bx, by); ctx.rotate(a + Math.PI / 2);
+    const p = new Path2D();
+    p.moveTo(-wid * .26, 0); p.lineTo(-wid * .52, -len * .8);
+    p.bezierCurveTo(-wid * .36, -len * 1.03, -wid * .12, -len * .93, 0, -len);
+    p.bezierCurveTo(wid * .15, -len * 1.06, wid * .38, -len * .95, wid * .52, -len * .8);
+    p.lineTo(wid * .26, 0); p.closePath();
+    const col = i % 3 === 1 ? W.sheer : W.paper;
+    const g = ctx.createLinearGradient(0, 0, 0, -len);
+    g.addColorStop(0, hexA(col, .1)); g.addColorStop(.55, hexA(col, .62)); g.addColorStop(1, hexA(shade(col, .25), .9));
+    ctx.fillStyle = g; ctx.fill(p);
+    ctx.strokeStyle = hexA(W.edge, .55); ctx.lineWidth = 1.2; ctx.stroke(p);
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = .8; ctx.stroke(p);
+    ctx.strokeStyle = hexA(shade(col, -.14), .3); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-wid * .05, -len * .2); ctx.quadraticCurveTo(wid * .08, -len * .6, wid * .02, -len * .97); ctx.stroke();
+    ctx.restore();
+  }
+}
+function drawSheerFront(ctx, cx, cy, R, tip, W) {
+  const fy = cy + R * .46;
+  const sheet = (dir, col, alpha, drop) => {
+    const p = new Path2D();
+    p.moveTo(cx + dir * 6, tip[1]);
+    p.lineTo(cx + dir * (R + 36), fy - R * .2 + drop);
+    p.bezierCurveTo(cx + dir * R * .82, fy + R * .06 + drop, cx + dir * R * .5, fy - R * .04 + drop, cx + dir * R * .24, fy + R * .12 + drop);
+    p.bezierCurveTo(cx + dir * R * .06, fy + R * .22 + drop, cx - dir * R * .08, fy + R * .15 + drop, cx - dir * R * .24, fy + R * .26 + drop);
+    p.closePath();
+    const g = ctx.createLinearGradient(0, fy - R * .2, 0, tip[1]);
+    g.addColorStop(0, hexA(shade(col, .18), alpha)); g.addColorStop(.5, hexA(col, alpha)); g.addColorStop(1, hexA(shade(col, -.1), Math.min(1, alpha + .08)));
+    ctx.save(); ctx.shadowColor = 'rgba(140,70,85,.2)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = -2; ctx.fillStyle = g; ctx.fill(p); ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.4; ctx.stroke(p);
+    ctx.strokeStyle = hexA(shade(col, -.16), .28); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx + dir * 10, tip[1] - 8); ctx.quadraticCurveTo(cx + dir * R * .5, fy + R * .3 + drop, cx + dir * R * .8, fy - R * .02 + drop); ctx.stroke();
+  };
+  sheet(-1, W.paper, .94, 0); sheet(1, W.paper, .9, 0);
+  sheet(1, W.sheer, .62, R * .1); sheet(-1, W.sheer, .58, R * .12);
+}
+function drawCard(ctx, x, y, rot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+  ctx.fillStyle = '#fffaf7'; ctx.fillRect(-58, -40, 116, 80);
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = 'rgba(0,0,0,.06)'; ctx.strokeRect(-58, -40, 116, 80);
+  ctx.fillStyle = '#3b302b'; ctx.font = '28px "Nanum Pen Script", "Gowun Batang", cursive'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('For you ♡', 0, 0);
+  ctx.restore();
+}
+function drawEmpty(ctx) {
+  const dim = getComputedStyle(document.documentElement).getPropertyValue('--fg-dim').trim() || '#999';
+  ctx.save(); ctx.strokeStyle = dim; ctx.globalAlpha = .6; ctx.setLineDash([6, 8]); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(200, 200, 110, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+  ctx.fillStyle = dim; ctx.font = '17px "Gowun Dodum", sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('꽃을 담으면', 200, 196); ctx.fillText('여기에 다발이 그려져요', 200, 222); ctx.restore();
+}
+function drawBouquet(canvas, items, wrapKey, card) {
+  const ctx = canvas.getContext('2d'); const S = canvas.width / 400;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.setTransform(S, 0, 0, S, 0, 0);
+  const W = WRAPS[wrapKey] || WRAPS.kraft;
+  const stems = []; items.forEach(it => { for (let k = 0; k < it.count; k++) stems.push(it); });
+  if (!stems.length) { drawEmpty(ctx); return; }
+  const rng = rngFrom(hashStr(items.map(i => i.id + ':' + i.count).join('|') + wrapKey));
+  const greens = stems.filter(s => meta(s).kind === 'green');
+  const fillers = stems.filter(s => meta(s).kind === 'filler');
+  const heads = shuffle(stems.filter(s => meta(s).kind === 'head'), rng);
+  const weight = heads.reduce((a, s) => a + Math.pow(meta(s).size || 1, 2), 0) + fillers.length * .6 + greens.length * .2;
+  const R = Math.min(138, 30 + 18.5 * Math.sqrt(Math.max(1, weight)));
+  const cx = 200, cy = 212 - .2 * R;
+  const tip = [cx, Math.min(432, cy + R * 1.22 + 66)];
+
+  // 뒤 포장지
+  const sheer = W.style === 'sheer';
+  const L = [cx - R - 30, cy - R * .22], Rt = [cx + R + 30, cy - R * .22], T = [cx, cy - R * .98 - 22];
+  const back = new Path2D();
+  back.moveTo(tip[0], tip[1]); back.lineTo(L[0], L[1]);
+  back.quadraticCurveTo(cx - R * .7, cy - R - 40, T[0], T[1]);
+  back.quadraticCurveTo(cx + R * .7, cy - R - 40, Rt[0], Rt[1]); back.closePath();
+  const topPts = [];
+  for (let i = 0; i <= 8; i++) { const t = i / 8; const a = Math.PI + t * Math.PI; topPts.push([cx + Math.cos(a) * (R + 30), cy - R * .22 + Math.sin(a) * (R * .8 + 22)]); }
+  if (sheer) drawSheerBack(ctx, cx, cy, R, W, rng);
+  else {
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8; ctx.fillStyle = W.paper; ctx.fill(back); ctx.restore();
+    paperFill(ctx, back, W.paper, W.edge, tip, topPts, false);
+  }
+  if (card) drawCard(ctx, cx + R * .5, cy - R * 1.02, .07);
+
+  // 잎 그늘 (꽃 사이 깊이감)
+  const dg = ctx.createRadialGradient(cx, cy, R * .1, cx, cy, R * .92);
+  dg.addColorStop(0, sheer ? 'rgba(40,54,30,.62)' : 'rgba(26,36,20,.8)'); dg.addColorStop(.65, sheer ? 'rgba(52,70,40,.32)' : 'rgba(34,48,26,.5)'); dg.addColorStop(1, 'rgba(34,48,26,0)');
+  ctx.fillStyle = dg; ctx.beginPath(); ctx.ellipse(cx, cy + 4, R * .92, R * .76, 0, 0, Math.PI * 2); ctx.fill();
+
+  // 그린: 가장자리에서 바깥으로 뻗게
+  greens.forEach((g, i) => {
+    const img = getImg(g); if (!img) return;
+    const m = meta(g);
+    const a = -Math.PI / 2 + ((i + .5) / greens.length - .5) * Math.PI * 1.25 + (rng() - .5) * .25;
+    const r0 = R * (.3 + rng() * .25);
+    const x = cx + Math.cos(a) * r0, y = cy + Math.sin(a) * r0 * .82;
+    const len = R * (.8 + rng() * .3);
+    const iw = img.width || img.naturalWidth, ih = img.height || img.naturalHeight;
+    ctx.save(); ctx.translate(x, y);
+    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+    if (m.axis === 'h') { ctx.rotate(a); const h = len * ih / iw; ctx.drawImage(img, 0, -h / 2, len, h); }
+    else { ctx.rotate(a + Math.PI / 2); const w = len * iw / ih; ctx.drawImage(img, -w / 2, -len, w, len); }
+    ctx.restore();
+  });
+
+  // 잔꽃
+  fillers.forEach((f, i) => {
+    const img = getImg(f); if (!img) return;
+    // 가장자리로 삐져나온 가지
+    let a = -Math.PI / 2 + ((i * .618 + rng() * .3) % 1 - .5) * Math.PI * 1.2, r = R * (.66 + rng() * .3);
+    let size = 74 + rng() * 18;
+    ctx.save(); ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .8); ctx.rotate(a + Math.PI / 2 + (rng() - .5) * .6);
+    ctx.drawImage(img, -size / 2, -size * .8, size, size); ctx.restore();
+    // 꽃 사이 틈을 채우는 가지
+    a = rng() * Math.PI * 2; r = R * (.15 + rng() * .5); size = 66 + rng() * 16;
+    ctx.save(); ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .78); ctx.rotate((rng() - .5) * 1.2);
+    ctx.drawImage(img, -size / 2, -size / 2, size, size); ctx.restore();
+  });
+
+  // 꽃송이: 황금각 배열, 앞(아래)에 있는 꽃이 위로 오도록
+  const placed = heads.map((s, i) => {
+    const tt = (i + .5) / heads.length, r = R * .8 * Math.sqrt(tt), a = i * 2.39996 + rng() * .35;
+    return { s, x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) * .8 - (1 - tt) * 10 };
+  }).sort((p, q) => p.y - q.y);
+  const BASE = 76;
+  placed.forEach((p, idx) => {
+    const v = (hashStr(p.s.id) + idx) % filesOf(p.s).length;
+    const img = getImg(p.s, v); if (!img) return;
+    const m = meta(p.s);
+    const flip = rng() < .5 ? -1 : 1;
+    const iw = img.width || img.naturalWidth, ih = img.height || img.naturalHeight;
+    const d = BASE * (m.size || 1) * (.9 + rng() * .2);
+    const k = d / Math.max(iw, ih);
+    const w = iw * k, h = ih * k;
+    const tilt = m.type === 'tulip' || m.type === 'calla' ? ((p.x - cx) / R) * .45 + (rng() - .5) * .25 : (rng() - .5) * .45;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(tilt); ctx.scale(flip, 1);
+    ctx.shadowColor = 'rgba(0,0,0,.42)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+    if (m.custom) {
+      ctx.beginPath(); ctx.arc(0, 0, d * .5, 0, Math.PI * 2); ctx.closePath();
+      ctx.drawImage(img, -d / 2, -d / 2, d, d);
+    } else ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  });
+
+  // 앞 포장지 두 장 + 리본
+  const fy = cy + R * .5;
+  if (sheer) {
+    drawSheerFront(ctx, cx, cy, R, tip, W);
+    drawRibbon(ctx, cx, fy + (tip[1] - fy) * .5, W.ribbon, 1.75);
+    return;
+  }
+  const left = new Path2D(); left.moveTo(tip[0], tip[1] + 4); left.lineTo(cx - R - 26, fy - 8); left.quadraticCurveTo(cx - R * .35, fy + R * .24, cx + 24, fy + 4); left.closePath();
+  const right = new Path2D(); right.moveTo(tip[0], tip[1] + 4); right.lineTo(cx + R + 26, fy - 8); right.quadraticCurveTo(cx + R * .35, fy + R * .24, cx - 24, fy + 4); right.closePath();
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = -2; ctx.fillStyle = W.paper; ctx.fill(left); ctx.restore();
+  paperFill(ctx, left, W.paper, W.edge, [tip[0], tip[1] + 4], [[cx - R - 26, fy - 8], [cx - R * .45, fy + R * .12], [cx - 10, fy + 8], [cx + 24, fy + 4]], true);
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = -3; ctx.fillStyle = shade(W.paper, -.05); ctx.fill(right); ctx.restore();
+  paperFill(ctx, right, shade(W.paper, -.05), W.edge, [tip[0], tip[1] + 4], [[cx - 24, fy + 4], [cx + 10, fy + 8], [cx + R * .45, fy + R * .12], [cx + R + 26, fy - 8]], true);
+  const ry = fy + (tip[1] - fy) * .42;
+  drawRibbon(ctx, cx, ry, W.ribbon);
+}
+let bqSeq = 0;
+const bqJobs = new Map();
+function bouquetCanvas(items, wrap, title, scale, card) {
+  const id = 'bq' + (++bqSeq);
+  bqJobs.set(id, { items, wrap, card });
+  const sc = scale || 1;
+  return `<canvas id="${id}" width="${400 * sc}" height="${440 * sc}" role="img" aria-label="${esc(title || '꽃다발 미리보기')}"></canvas>`;
+}
+function paintJobs() {
+  for (const [id, job] of bqJobs) { const c = document.getElementById(id); if (c) drawBouquet(c, job.items, job.wrap, job.card); }
+  bqJobs.clear();
+}
+function photoTag(f, cls) {
+  const src = imgSrc(f, 0);
+  return `<img class="${cls}" src="${esc(src)}" alt="${esc(label(f))} 사진" loading="lazy">`;
+}
+
+/* ================= AI 추천 (데모: 규칙 기반) ================= */
+const OCC = {
+  birthday: { label: '생일', fam: { orange: 3, yellow: 3, peach: 2, pink: 2, red: 1 }, why: '밝고 경쾌한 색' },
+  love: { label: '기념일·프로포즈', fam: { red: 3, pink: 3, peach: 2, purple: 1 }, why: '붉은 계열과 핑크' },
+  congrats: { label: '승진·개업', fam: { yellow: 3, orange: 3, red: 2, white: 1 }, why: '선명한 노랑과 주황' },
+  thanks: { label: '감사', fam: { pink: 3, peach: 3, yellow: 2, purple: 2, white: 1 }, why: '부드러운 파스텔' },
+  comfort: { label: '위로·병문안', fam: { white: 3, green: 3, blue: 2, purple: 1 }, why: '차분한 흰색과 그린' }
+};
+const MOOD = {
+  bright: { label: '화사한', sat: 1, mix: true },
+  romantic: { label: '로맨틱한', fam: { pink: 2, red: 1, peach: 1, purple: 1 }, type: { rose: 1.5, lisianthus: .5 } },
+  calm: { label: '차분한', sat: -1, fam: { white: 2, green: 1, blue: 1 } },
+  natural: { label: '내추럴한', type: { hellebore: 1, lisianthus: .6, ranunculus: .4, filler: 1 }, greens: true }
+};
+function score(f, occ, mood, rng) {
+  const fam = family(f.color), { s } = hsl(f.color), m = MOOD[mood];
+  let sc = OCC[occ].fam[fam] || 0;
+  if (m.fam) sc += m.fam[fam] || 0;
+  if (m.type) sc += m.type[meta(f).type] || 0;
+  if (m.sat === 1) sc += s * 1.5;
+  if (m.sat === -1) sc += (1 - s) * 1.5;
+  return sc + rng() * .6;
+}
+function allocate(parts, budget) {
+  const items = parts.map(p => ({ ...p, n: 0 }));
+  const est = budget - 5000;
+  items.forEach(it => {
+    let n = Math.floor(it.ratio * est / it.f.price);
+    if (it.role === 'focal') { n = Math.max(3, n); if (n % 2 === 0) n -= 1; }
+    else n = Math.max(1, n);
+    it.n = Math.min(n, it.f.stock);
+  });
+  const count = () => items.reduce((s, i) => s + i.n, 0);
+  const total = () => items.reduce((s, i) => s + i.n * i.f.price, 0) + wrapFee(count(), state.wrap);
+  let guard = 0;
+  while (total() > budget && guard++ < 300) {
+    const c = items.filter(i => i.role === 'focal' ? i.n > 1 : i.n > 0).sort((a, b) => b.n * b.f.price - a.n * a.f.price)[0];
+    if (!c) break;
+    c.n -= c.role === 'focal' && c.n >= 3 ? 2 : 1;
+  }
+  const order = ['focal', 'second', 'third', 'green', 'filler', 'green2'];
+  let idx = 0, misses = 0;
+  guard = 0;
+  while (misses < order.length && guard++ < 300) {
+    const it = items.find(i => i.role === order[idx % order.length]); idx++;
+    if (!it) { misses++; continue; }
+    const step = it.role === 'focal' ? 2 : 1;
+    if (it.n + step <= it.f.stock) { it.n += step; if (total() <= budget) { misses = 0; continue; } it.n -= step; }
+    misses++;
+  }
+  const kept = items.filter(i => i.n > 0);
+  return { items: kept, total: total(), stems: count() };
+}
+function recommend(occ, mood, budget) {
+  const rng = rngFrom(hashStr(occ + mood + budget + state.flowers.map(f => f.id + f.stock).join()));
+  const fl = state.flowers.filter(f => f.stock > 0 && f.price > 0);
+  const scored = f => ({ f, sc: score(f, occ, mood, rng) });
+  const mains = fl.filter(f => f.cat === 'main').map(scored).sort((a, b) => b.sc - a.sc);
+  const fillers = fl.filter(f => f.cat === 'sub' && meta(f).type !== 'hydrangea').map(scored).sort((a, b) => b.sc - a.sc);
+  const greens = fl.filter(f => f.cat === 'green').map(scored).sort((a, b) => b.sc - a.sc);
+  const m = MOOD[mood], o = OCC[occ];
+  const results = [], seen = new Set();
+  for (let v = 0; v < 3 && v < mains.length; v++) {
+    const focal = mains[v].f;
+    const pool = [...mains.filter(x => x.f.id !== focal.id), ...fl.filter(f => meta(f).type === 'hydrangea').map(scored)]
+      .map(x => ({ ...x, sc: x.sc + (m.mix ? (family(x.f.color) !== family(focal.color) ? 1 : 0) : (family(x.f.color) === family(focal.color) ? .6 : 0)) }))
+      .sort((a, b) => b.sc - a.sc);
+    const second = (pool[v === 2 && pool.length > 1 ? 1 : 0] || {}).f;
+    const third = mood === 'natural' ? null : (pool.find(x => x.f.cat === 'main' && (!second || x.f.id !== second.id) && (m.mix || family(x.f.color) === family(focal.color))) || {}).f;
+    const filler = (fillers.find(x => !second || x.f.id !== second.id) || {}).f;
+    const green = (greens[0] || {}).f, green2 = m.greens ? (greens[1] || {}).f : null;
+    const nat = mood === 'natural';
+    const parts = [
+      { f: focal, role: 'focal', ratio: nat ? .36 : third ? .38 : .46 },
+      second && { f: second, role: 'second', ratio: nat ? .2 : third ? .2 : .24 },
+      third && { f: third, role: 'third', ratio: .14 },
+      filler && { f: filler, role: 'filler', ratio: nat ? .16 : .1 },
+      green && { f: green, role: 'green', ratio: nat ? .16 : .18 },
+      green2 && { f: green2, role: 'green2', ratio: .12 }
+    ].filter(Boolean);
+    const r = allocate(parts, budget);
+    if (!r.items.length || r.total > budget) continue;
+    const sig = r.items.map(i => i.f.id + i.n).sort().join();
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+    const sec = r.items.find(i => i.role === 'second');
+    const rest = r.items.filter(i => i.role === 'filler' || i.role.startsWith('green')).map(i => i.f.name);
+    let why = `${o.label}에는 ${iga(o.why)} 잘 어울려요. 오늘 들어온 ${eul(label(focal))} 중심에 두고`;
+    const thr = r.items.find(i => i.role === 'third');
+    why += sec ? (thr ? ` ${wa(label(sec.f))} ${ro(label(thr.f))} 색을 받쳤어요.` : ` ${ro(label(sec.f))} 색을 받쳤어요.`) : ' 한 가지 색으로 깔끔하게 모았어요.';
+    if (rest.length) why += ` ${ro(rest.join('·'))} 사이와 가장자리를 채웠어요.`;
+    why += ` 메인 꽃은 ${r.items[0].n}송이, 홀수로 넣어 모양이 자연스러워요.`;
+    if (budget - r.total >= 3000) why += ` 예산보다 ${won(budget - r.total)} 적게 나왔어요.`;
+    results.push({ title: `${label(focal)} 중심의 ${m.label} 다발`, items: r.items, total: r.total, stems: r.stems, why });
+  }
+  return results;
+}
+
+/* ================= 렌더: 손님 화면 ================= */
+function cartItems() { return snapshotItems(state.cart, state.flowers); }
+function cartTotals() {
+  const items = cartItems();
+  const stems = items.reduce((s, i) => s + i.count, 0);
+  const flowerTotal = items.reduce((s, i) => s + i.count * i.price, 0);
+  const fee = wrapFee(stems, state.wrap);
+  return { items, stems, flowerTotal, fee, total: flowerTotal + fee };
+}
+function renderShelf() {
+  const groups = ['main', 'sub', 'green'].map(cat => {
+    const list = state.flowers.filter(f => f.cat === cat);
+    if (!list.length) return '';
+    const cards = list.map(f => {
+      const n = state.cart[f.id] || 0, left = available(f);
+      const out = f.stock <= 0;
+      return `<div class="fl${n ? ' on' : ''}${out ? ' out' : ''}">
+        ${photoTag(f, 'ph')}
+        <div class="nm">${esc(f.name)}<small>${esc(f.colorName || '')}</small></div>
+        <div class="nm"><span class="pr num">${won(f.price)}</span> <small style="display:inline">/송이</small></div>
+        <div class="meta">
+          <span class="left num${left <= 3 ? ' low' : ''}">${out ? '오늘 품절' : `남은 ${left}송이`}</span>
+          <span class="stepper">
+            <button type="button" data-act="dec" data-id="${esc(f.id)}" aria-label="${esc(label(f))} 한 송이 빼기" ${n ? '' : 'disabled'}>−</button>
+            <output class="num" aria-label="${esc(label(f))} 담은 수">${n}</output>
+            <button type="button" data-act="inc" data-id="${esc(f.id)}" aria-label="${esc(label(f))} 한 송이 담기" ${left > 0 ? '' : 'disabled'}>+</button>
+          </span>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="group"><h3>${CATS[cat]} <span>${CAT_HINT[cat]}</span></h3><div class="flowers">${cards}</div></div>`;
+  }).join('');
+  $('#shelf').innerHTML = groups || '<div class="empty">오늘 등록된 꽃이 없어요. 사장님 화면에서 사입한 꽃을 입력해 주세요.</div>';
+}
+function renderSide() {
+  const t = cartTotals();
+  $('#preview').innerHTML = bouquetCanvas(t.items, state.wrap, '내가 고른 꽃다발 미리보기', 2, state.card);
+  $('#card-toggle').checked = !!state.card;
+  $('#stem-count').textContent = `${t.stems}송이`;
+  const wrapInput = document.getElementById('wrap-' + state.wrap);
+  if (wrapInput) wrapInput.checked = true;
+  $('#lines').innerHTML = t.items.length
+    ? t.items.map(i => `<li><span class="dot" style="background:${esc(i.color)}"></span><span>${esc(label(i))} <span class="sub num">${i.count}송이</span></span><span class="num">${won(i.count * i.price)}</span></li>`).join('')
+    : '<li><span></span><span class="sub">아직 담은 꽃이 없어요.</span><span></span></li>';
+  $('#totals').innerHTML = `
+    <div><span>꽃값</span><span class="num">${won(t.flowerTotal)}</span></div>
+    <div><span>포장비 (${WRAPS[state.wrap].label}${WRAPS[state.wrap].extra ? ' +' + won(WRAPS[state.wrap].extra) : ''}, ${t.stems <= 10 ? '10송이 이하' : t.stems <= 20 ? '11~20송이' : '21송이 이상'})</span><span class="num">${won(t.fee)}</span></div>
+    <div class="grand"><span>합계</span><b class="num">${won(t.total)}</b></div>`;
+  $('#mbar-text').innerHTML = `${t.stems}송이 · <b class="num">${won(t.total)}</b>`;
+  $('#order-btn').disabled = t.stems < 3;
+  $('#to-form-btn').disabled = t.stems < 3;
+  if (!$('#form-msg').dataset.sticky) $('#form-msg').textContent = t.stems && t.stems < 3 ? '3송이 이상 담으면 주문할 수 있어요.' : '';
+  paintJobs();
+}
+function renderMake() { renderShelf(); renderSide(); }
+let lastRecs = [];
+function renderRecs(list) {
+  lastRecs = list;
+  const box = $('#recs');
+  if (!list.length) { box.innerHTML = '<div class="empty">이 예산으로는 오늘 재고에서 다발을 만들기 어려워요. 예산을 조금 올려 보세요.</div>'; return; }
+  box.innerHTML = list.map((r, i) => {
+    const items = r.items.map(x => ({ id: x.f.id, name: x.f.name, colorName: x.f.colorName, color: x.f.color, photo: x.f.photo, photoData: x.f.photoData, cat: x.f.cat, count: x.n }));
+    return `<article class="rec">
+      ${bouquetCanvas(items, state.wrap, r.title, 1)}
+      <h4>${esc(r.title)}</h4>
+      <span class="price num">${won(r.total)} · ${r.stems}송이</span>
+      <ul>${r.items.map(x => `<li>${esc(label(x.f))} ${x.n}송이</li>`).join('')}</ul>
+      <p>${esc(r.why)}</p>
+      <button class="btn btn-small" type="button" data-act="use-rec" data-i="${i}">이 조합으로 담기</button>
+    </article>`;
+  }).join('');
+  paintJobs();
+}
+
+/* ================= 렌더: 사장님 화면 ================= */
+function renderStats() {
+  const fl = state.flowers;
+  const stems = fl.reduce((s, f) => s + (+f.stock || 0), 0);
+  const cost = fl.reduce((s, f) => s + (+f.stock || 0) * (+f.cost || 0), 0);
+  const sales = fl.reduce((s, f) => s + (+f.stock || 0) * (+f.price || 0), 0);
+  $('#stats').innerHTML = `<span>품목<b class="num">${fl.length}종</b></span><span>남은 재고<b class="num">${stems}송이</b></span><span>재고 사입가<b class="num">${won(cost)}</b></span><span>전부 팔면<b class="num">${won(sales)}</b></span>`;
+}
+function marginCell(f) {
+  if (!f.price) return '<td class="margin-cell bad">-</td>';
+  const m = Math.round((f.price - f.cost) / f.price * 100);
+  return `<td class="margin-cell${m < 40 ? ' bad' : ''}" data-margin="${esc(f.id)}">${m}%</td>`;
+}
+function renderLedger() {
+  const opt = (obj, v) => Object.entries(obj).map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${l}</option>`).join('');
+  const photoOpts = f => Object.entries(PHOTOS).map(([k, p]) => `<option value="${k}"${k === f.photo ? ' selected' : ''}>${p.label}</option>`).join('')
+    + (f.photo === 'custom' ? '<option value="custom" selected>직접 올린 사진</option>' : '');
+  $('#ledger').innerHTML = state.flowers.map(f => `<tr data-id="${esc(f.id)}">
+    <td><div class="photo-cell">${photoTag(f, '')}
+      <select class="input" data-field="photo" aria-label="사진 고르기" style="width:150px">${photoOpts(f)}</select>
+      <label class="btn btn-small upload">사진 올리기<input type="file" accept="image/*" capture="environment" data-upload="${esc(f.id)}" aria-label="${esc(label(f))} 사진 올리기"></label>
+    </div></td>
+    <td><input class="input" id="nm-${esc(f.id)}" data-field="name" value="${esc(f.name)}" aria-label="꽃 이름" style="width:110px"></td>
+    <td><input class="input" data-field="colorName" value="${esc(f.colorName)}" aria-label="색 이름" style="width:80px"></td>
+    <td><input type="color" data-field="color" value="${esc(f.color)}" aria-label="색 (추천에 쓰여요)"></td>
+    <td><select class="input" data-field="cat" aria-label="분류">${opt(CATS, f.cat)}</select></td>
+    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="cost" value="${+f.cost || 0}" aria-label="사입가" style="width:96px"></td>
+    <td class="money"><input class="input num" type="number" min="0" step="100" data-field="price" value="${+f.price || 0}" aria-label="판매가" style="width:96px"></td>
+    ${marginCell(f)}
+    <td><input class="input num" type="number" min="0" step="1" data-field="stock" value="${+f.stock || 0}" aria-label="재고" style="width:72px"></td>
+    <td><button class="btn btn-small" type="button" data-act="del-flower" data-id="${esc(f.id)}">삭제</button></td>
+  </tr>`).join('');
+  renderStats();
+}
+const STATUS = { new: '새 주문', making: '제작 중', done: '픽업 완료', canceled: '취소됨' };
+function renderOrders() {
+  const list = [...state.orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const active = list.filter(o => o.status === 'new' || o.status === 'making').length;
+  $('#orders-count').textContent = `처리할 주문 ${active}건`;
+  $('#orders').innerHTML = list.length ? list.map(o => {
+    const stems = o.items.reduce((s, i) => s + i.count, 0);
+    const time = new Date(o.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    const acts = o.status === 'new' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="making">제작 시작</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>`
+      : o.status === 'making' ? `<button class="btn btn-small btn-primary" type="button" data-act="status" data-o="${esc(o.id)}" data-s="done">픽업 완료</button><button class="btn btn-small" type="button" data-act="status" data-o="${esc(o.id)}" data-s="canceled">취소 (재고 복구)</button>` : '';
+    return `<article class="order card">
+      ${bouquetCanvas(o.items, o.wrap, `주문 ${o.id} 꽃다발`, 1, o.card)}
+      <div style="min-width:0">
+        <div class="order-head"><b>${esc(o.id)}${o.example ? ' <span class="pill">예시</span>' : ''}</b><span class="status ${o.status}">${STATUS[o.status]}</span></div>
+        <div class="who">${esc(o.name)} · ${esc(o.phone)} · 픽업 ${esc(o.pickup)} · 접수 ${time}</div>
+        ${o.memo ? `<div class="memo">${esc(o.memo)}</div>` : ''}
+        <ul>${o.items.map(i => `<li><span class="dot" style="background:${esc(i.color)}"></span>${esc(label(i))} <span class="stems num">${i.count}송이</span></li>`).join('')}</ul>
+        <div class="sum"><span>총 <b class="num" style="font-family:var(--sans);font-size:15px;color:var(--fg)">${stems}송이</b> · ${esc(WRAPS[o.wrap]?.label || '')} 포장${o.card ? ' · 카드' : ''}</span><b class="num">${won(o.total)}</b></div>
+        <div class="acts">${acts}</div>
+      </div>
+    </article>`;
+  }).join('') : '<div class="empty">아직 들어온 주문이 없어요. 손님 화면에서 다발을 만들어 주문을 보내 보세요.</div>';
+  paintJobs();
+}
+function renderSeller() { $('#markup').value = state.markup ?? 2.5; renderLedger(); renderOrders(); }
+
+/* ================= 화면 전환 ================= */
+let ready = false;
+function route() {
+  if (!ready) return;
+  const seller = location.hash === '#seller';
+  $('#view-make').hidden = seller;
+  $('#view-seller').hidden = !seller;
+  $('#tab-make').setAttribute('aria-current', seller ? 'false' : 'page');
+  $('#tab-seller').setAttribute('aria-current', seller ? 'page' : 'false');
+  if (seller) renderSeller(); else { renderMake(); if (lastRecs.length) renderRecs(lastRecs); }
+}
+window.addEventListener('hashchange', route);
+
+/* ================= 사진 올리기 ================= */
+async function processUpload(file) {
+  const url = URL.createObjectURL(file);
+  const img = await loadImg(url);
+  URL.revokeObjectURL(url);
+  if (!img) throw new Error('read');
+  const s = Math.min(img.naturalWidth, img.naturalHeight);
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, 256, 256);
+  const d = g.getImageData(90, 90, 76, 76).data; let r = 0, gg = 0, b = 0, n = 0;
+  for (let i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; b += d[i + 2]; n++; }
+  const color = '#' + [r, gg, b].map(v => Math.round(v / n).toString(16).padStart(2, '0')).join('');
+  g.globalCompositeOperation = 'destination-in';
+  const rg = g.createRadialGradient(128, 128, 78, 128, 128, 127); rg.addColorStop(0, 'rgba(0,0,0,1)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, 256, 256);
+  let data = c.toDataURL('image/webp', .8);
+  if (!data.startsWith('data:image/webp')) data = c.toDataURL('image/png');
+  return { data, color };
+}
+
+/* ================= 이벤트 ================= */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act, id = b.dataset.id;
+  if (act === 'inc' || act === 'dec') {
+    const f = state.flowers.find(x => x.id === id); if (!f) return;
+    const n = state.cart[id] || 0;
+    if (act === 'inc' && available(f) > 0) state.cart[id] = n + 1;
+    if (act === 'dec' && n > 0) { if (n === 1) delete state.cart[id]; else state.cart[id] = n - 1; }
+    $('#done').innerHTML = ''; delete $('#form-msg').dataset.sticky;
+    save(); renderMake();
+    const again = document.querySelector(`[data-act="${act}"][data-id="${CSS.escape(id)}"]`);
+    if (again && !again.disabled) again.focus();
+  } else if (act === 'use-rec') {
+    const r = lastRecs[+b.dataset.i]; if (!r) return;
+    state.cart = {};
+    r.items.forEach(x => { const f = state.flowers.find(y => y.id === x.f.id); if (f) state.cart[f.id] = Math.min(x.n, f.stock); });
+    $('#done').innerHTML = '';
+    save(); renderMake();
+    toast('추천 조합을 담았어요. 송이 수를 자유롭게 바꿔 보세요.');
+    if (window.matchMedia('(max-width: 960px)').matches) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (act === 'to-form') {
+    $('#orderbox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => $('#ord-name').focus({ preventScroll: true }), 400);
+  } else if (act === 'to-bill') {
+    $('#bill').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (act === 'goto-seller') {
+    location.hash = '#seller';
+  } else if (act === 'status') {
+    const o = state.orders.find(x => x.id === b.dataset.o); if (!o) return;
+    const next = b.dataset.s;
+    if (next === 'canceled' && !o.example) {
+      o.items.forEach(i => { const f = state.flowers.find(x => x.id === i.id); if (f) f.stock = (+f.stock || 0) + i.count; });
+    }
+    o.status = next; save(); renderSeller();
+    toast(next === 'making' ? `${o.id} 제작을 시작했어요.` : next === 'done' ? `${o.id} 픽업 완료로 바꿨어요.` : `${o.id} 주문을 취소하고 재고를 되돌렸어요.`);
+  } else if (act === 'bulk-price') {
+    const mk = parseFloat($('#markup').value) || 2.5; state.markup = mk;
+    state.flowers.forEach(f => { f.price = Math.round((+f.cost || 0) * mk / 100) * 100; });
+    save(); renderLedger(); toast(`사입가의 ${mk}배로 판매가를 채웠어요.`);
+  } else if (act === 'add-flower') {
+    const nf = { id: 'f' + Date.now().toString(36), name: '새 꽃', colorName: '', photo: 'carnation-peach', color: PHOTOS['carnation-peach'].color, cat: 'main', cost: 1000, price: 2500, stock: 10 };
+    state.flowers.push(nf); save(); renderLedger();
+    const el = document.getElementById('nm-' + nf.id); if (el) { el.focus(); el.select(); }
+    toast('새 꽃을 추가했어요. 사진을 고르거나 직접 찍어 올려 주세요.');
+  } else if (act === 'del-flower') {
+    if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = '한 번 더'; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ''; b.textContent = '삭제'; } }, 3000); return; }
+    state.flowers = state.flowers.filter(f => f.id !== id); delete state.cart[id];
+    save(); renderLedger(); toast('목록에서 뺐어요.');
+  } else if (act === 'reset') {
+    if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = '한 번 더 누르면 되돌려요'; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ''; b.textContent = '예시 데이터로 되돌리기'; } }, 3000); return; }
+    state = freshState(); save(); b.dataset.armed = ''; b.textContent = '예시 데이터로 되돌리기'; renderSeller(); toast('예시 데이터로 되돌렸어요.');
+  }
+});
+
+const ledgerEl = document.getElementById('ledger');
+ledgerEl.addEventListener('change', async e => {
+  const el = e.target, tr = el.closest('tr'); if (!tr) return;
+  const f = state.flowers.find(x => x.id === tr.dataset.id); if (!f) return;
+  if (el.dataset.upload) {
+    const file = el.files && el.files[0]; if (!file) return;
+    try {
+      const { data, color } = await processUpload(file);
+      f.photo = 'custom'; f.photoData = data; f.color = color;
+      const i = await loadImg(data); IMG[imgKey(f)] = i;
+      save(); renderLedger(); toast(`${label(f)} 사진을 바꿨어요. 손님 화면에 바로 보여요.`);
+    } catch (err) { toast('사진을 읽지 못했어요. JPG나 PNG 사진으로 다시 올려 주세요.'); }
+    return;
+  }
+  if (!el.dataset.field) return;
+  const k = el.dataset.field;
+  if (k === 'photo') {
+    if (el.value !== 'custom') { f.photo = el.value; delete f.photoData; f.color = PHOTOS[el.value].color; }
+    save(); renderLedger(); return;
+  }
+  f[k] = ['cost', 'price', 'stock'].includes(k) ? Math.max(0, Math.round(+el.value || 0)) : el.value;
+  if (k === 'stock' && (state.cart[f.id] || 0) > f.stock) { if (f.stock > 0) state.cart[f.id] = f.stock; else delete state.cart[f.id]; }
+  save();
+  const mc = tr.querySelector('.margin-cell');
+  if (mc) mc.outerHTML = marginCell(f);
+  renderStats();
+});
+$('#markup').addEventListener('change', e => { state.markup = parseFloat(e.target.value) || 2.5; save(); });
+
+document.querySelectorAll('input[name="wrap"]').forEach(r => r.addEventListener('change', () => { state.wrap = r.value; save(); renderSide(); }));
+$('#card-toggle').addEventListener('change', e => { state.card = e.target.checked; save(); renderSide(); });
+
+const budget = $('#ai-budget');
+budget.addEventListener('input', () => { $('#ai-budget-out').textContent = won(+budget.value); });
+$('#ai-form').addEventListener('submit', e => {
+  e.preventDefault();
+  renderRecs(recommend($('#ai-occ').value, $('#ai-mood').value, +budget.value));
+});
+
+function pickupOptions() {
+  const now = new Date(), opts = [];
+  const fmt = (d, day) => `${day} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  // 영업시간 10:00~20:00 (예시). 지금부터 1시간 뒤부터 고를 수 있어요.
+  let first = new Date(now.getTime() + 60 * 60000); first.setMinutes(first.getMinutes() < 30 ? 30 : 60, 0, 0);
+  const open = new Date(now); open.setHours(10, 0, 0, 0);
+  if (first < open) first = open;
+  for (let d = new Date(first), i = 0; i < 6 && d.getDate() === now.getDate() && (d.getHours() < 20 || (d.getHours() === 20 && d.getMinutes() === 0)); i++, d = new Date(d.getTime() + 60 * 60000)) opts.push(fmt(d, '오늘'));
+  [11, 14, 17].forEach(h => { const d = new Date(now); d.setDate(d.getDate() + 1); d.setHours(h, 0, 0, 0); opts.push(fmt(d, '내일')); });
+  $('#ord-pickup').innerHTML = opts.map(o => `<option>${o}</option>`).join('');
+}
+
+$('#order-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const msg = $('#form-msg');
+  const t = cartTotals();
+  const name = $('#ord-name').value.trim(), phone = $('#ord-phone').value.trim();
+  msg.dataset.sticky = '1';
+  if (t.stems < 3) { msg.textContent = '3송이 이상 담아 주세요.'; return; }
+  if (!name) { msg.textContent = '주문자 이름을 적어 주세요.'; $('#ord-name').focus(); return; }
+  if (!/^[0-9\-\s+]{9,}$/.test(phone)) { msg.textContent = '연락처를 숫자로 적어 주세요. 예: 010-1234-5678'; $('#ord-phone').focus(); return; }
+  const short = t.items.find(i => { const f = state.flowers.find(x => x.id === i.id); return !f || f.stock < i.count; });
+  if (short) { msg.textContent = `${label(short)} 재고가 부족해요. 송이 수를 줄여 주세요.`; return; }
+  msg.textContent = ''; delete msg.dataset.sticky;
+  state.seq = (state.seq || 1001) + 1;
+  const order = { id: 'A-' + state.seq, createdAt: new Date().toISOString(), name, phone, pickup: $('#ord-pickup').value, memo: $('#ord-memo').value.trim(), wrap: state.wrap, card: !!state.card, items: t.items, flowerTotal: t.flowerTotal, wrapFee: t.fee, total: t.total, status: 'new' };
+  t.items.forEach(i => { const f = state.flowers.find(x => x.id === i.id); if (f) f.stock -= i.count; });
+  state.orders.push(order); state.cart = {};
+  save(); renderMake();
+  $('#ord-memo').value = '';
+  $('#done').innerHTML = `<div class="done-box"><b>주문을 보냈어요. 주문번호 ${esc(order.id)}</b><span class="hint">사장님이 확인하면 연락드려요. 프로토타입이라 주문은 이 브라우저의 사장님 화면에만 들어가요.</span><button class="btn btn-small" type="button" data-act="goto-seller">사장님 화면에서 확인하기</button></div>`;
+  toast(`주문 ${order.id}을 보냈어요.`);
+});
+
+/* ================= 시작 ================= */
+const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+$('#shelf-date').textContent = `${today} 사입분 · 예시 데이터`;
+$('#ledger-date').textContent = `${today} · 가격은 예시예요`;
+pickupOptions();
+preload().then(() => {
+  ready = true;
+  route();
+  renderRecs(recommend('birthday', 'bright', 50000));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#view-make').hidden) renderSide(); });
+});
+})();
+</script>
+</body>
+</html>
