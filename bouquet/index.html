@@ -332,11 +332,11 @@ td.money input { text-align: right; }
           <span class="pen" id="stem-count">0송이</span>
           <div class="wraps" role="radiogroup" aria-label="포장지">
             <span class="lab">포장</span>
-            <input type="radio" name="wrap" id="wrap-kraft" value="kraft"><label for="wrap-kraft" title="크라프트" style="background:#c9a27c"></label>
-            <input type="radio" name="wrap" id="wrap-white" value="white"><label for="wrap-white" title="화이트" style="background:#efe9df"></label>
-            <input type="radio" name="wrap" id="wrap-black" value="black"><label for="wrap-black" title="블랙" style="background:#2b2725"></label>
-            <input type="radio" name="wrap" id="wrap-pink" value="pink"><label for="wrap-pink" title="핑크" style="background:#e8c3c0"></label>
-            <input type="radio" name="wrap" id="wrap-pink-sheer" value="pink-sheer"><label for="wrap-pink-sheer" title="핑크 시폰 (+2,000원)" style="background:linear-gradient(135deg,#fff6f5 0 42%,#f5c3cd 58%)"></label>
+            <input type="radio" name="wrap" id="wrap-kraft" value="kraft"><label for="wrap-kraft" title="크라프트" style="background:#888 url(flowers/wrap-kraft-1.webp) center/cover"></label>
+            <input type="radio" name="wrap" id="wrap-white" value="white"><label for="wrap-white" title="화이트" style="background:#888 url(flowers/wrap-white-1.webp) center/cover"></label>
+            <input type="radio" name="wrap" id="wrap-black" value="black"><label for="wrap-black" title="블랙" style="background:#888 url(flowers/wrap-black-1.webp) center/cover"></label>
+            <input type="radio" name="wrap" id="wrap-pink" value="pink"><label for="wrap-pink" title="핑크" style="background:#888 url(flowers/wrap-pink-1.webp) center/cover"></label>
+            <input type="radio" name="wrap" id="wrap-pink-sheer" value="pink-sheer"><label for="wrap-pink-sheer" title="핑크 시폰 (+2,000원)" style="background:#f6bfcb url(flowers/wrap-sheer-pink-2.webp) center/cover"></label>
           </div>
         </div>
         <label class="cardtoggle"><input type="checkbox" id="card-toggle"> 메시지 카드 넣기 (무료)</label>
@@ -433,11 +433,11 @@ const KEY = 'holaflower-bouquet-v3';
 const CATS = { main: '메인 꽃', sub: '서브·필러', green: '그린' };
 const CAT_HINT = { main: '다발의 얼굴이 되는 꽃', sub: '볼륨과 사이를 채우는 꽃', green: '잎과 줄기' };
 const WRAPS = {
-  kraft: { label: '크라프트', paper: '#c49a72', edge: '#9c7550', ribbon: '#6e4426' },
-  white: { label: '화이트', paper: '#efe9df', edge: '#cdc3b4', ribbon: '#c9a15a' },
-  black: { label: '블랙', paper: '#2d2927', edge: '#4d4642', ribbon: '#d9c39a' },
-  pink:  { label: '핑크', paper: '#e8c3c0', edge: '#c99d99', ribbon: '#a8325f' },
-  'pink-sheer': { label: '핑크 시폰', style: 'sheer', paper: '#f6bfcb', sheer: '#fff3f3', edge: '#e7a3b3', ribbon: '#f5a6ba', extra: 2000 }
+  kraft: { label: '크라프트', paper: '#c49a72', edge: 'rgba(80,52,28,.45)', ribbon: '#6e4426', tex: ['wrap-kraft-1', 'wrap-kraft-2'] },
+  white: { label: '화이트', paper: '#efe9df', edge: 'rgba(120,110,95,.38)', ribbon: '#c9a15a', tex: ['wrap-white-1', 'wrap-white-2'] },
+  black: { label: '블랙', paper: '#2d2927', edge: 'rgba(255,255,255,.16)', ribbon: '#d9c39a', tex: ['wrap-black-1', 'wrap-black-2'], dark: true, sheen: true },
+  pink:  { label: '핑크', paper: '#e8c3c0', edge: 'rgba(150,90,95,.38)', ribbon: '#a8325f', tex: ['wrap-pink-1', 'wrap-pink-2'] },
+  'pink-sheer': { label: '핑크 시폰', style: 'sheer', paper: '#f6bfcb', edge: 'rgba(255,255,255,.85)', ribbon: '#f5a6ba', extra: 2000, tex: ['wrap-sheer-pink-1', 'wrap-sheer-pink-2'], tex2: ['wrap-sheer-white-1'] }
 };
 const F = (id, name, colorName, photo, cat, cost, price, stock) => ({ id, name, colorName, photo, color: PHOTOS[photo].color, cat, cost, price, stock });
 const SAMPLE_FLOWERS = [
@@ -607,44 +607,15 @@ async function preload() {
   const files = [];
   Object.entries(PHOTOS).forEach(([k, p]) => { if (!p.generated) (p.files || [k]).forEach(f => files.push(f)); });
   const daisyFiles = ['daisy-1', 'daisy-2', 'daisy-3', 'daisy-4', 'daisy-5'];
-  await Promise.all([...files, ...daisyFiles].map(f => loadImg(PHOTO_BASE + f + '.webp').then(i => { IMG[f] = i; })));
+  const wrapFiles = [];
+  Object.values(WRAPS).forEach(w => [...(w.tex || []), ...(w.tex2 || [])].forEach(f => wrapFiles.push(f)));
+  await Promise.all([...files, ...daisyFiles, ...wrapFiles].map(f => loadImg(PHOTO_BASE + f + '.webp').then(i => { IMG[f] = i; })));
   makeDaisy(daisyFiles.map(f => IMG[f]));
   const customs = state.flowers.filter(f => f.photo === 'custom' && f.photoData);
   await Promise.all(customs.map(f => loadImg(f.photoData).then(i => { IMG[imgKey(f)] = i; })));
 }
 
 /* ================= 꽃다발 합성 (캔버스) ================= */
-let grain = null;
-function grainPattern(ctx) {
-  if (!grain) {
-    const c = document.createElement('canvas'); c.width = c.height = 140; const g = c.getContext('2d'); const d = g.createImageData(140, 140); const r = rngFrom(3);
-    for (let i = 0; i < d.data.length; i += 4) { const v = r() < .5 ? 0 : 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 10 + r() * 22; }
-    g.putImageData(d, 0, 0); grain = c;
-  }
-  return ctx.createPattern(grain, 'repeat');
-}
-function paperFill(ctx, path, base, edge, tip, topPts, front) {
-  ctx.save();
-  ctx.fillStyle = base; ctx.fill(path);
-  ctx.clip(path);
-  // 주름: 꼭짓점에서 위쪽 가장자리로 퍼지는 면
-  for (let i = 0; i < topPts.length - 1; i++) {
-    const [ax, ay] = topPts[i], [bx, by] = topPts[i + 1];
-    const g = ctx.createLinearGradient(ax, ay, bx, by);
-    const light = i % 2 === 0;
-    g.addColorStop(0, light ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.10)');
-    g.addColorStop(1, light ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(tip[0], tip[1]); ctx.lineTo(ax, ay); ctx.lineTo(bx, by); ctx.closePath(); ctx.fill();
-  }
-  // 아래로 갈수록 어둡게
-  const v = ctx.createLinearGradient(0, topPts[0][1] - 40, 0, tip[1]);
-  v.addColorStop(0, front ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,0)');
-  v.addColorStop(1, 'rgba(0,0,0,.22)');
-  ctx.fillStyle = v; ctx.fillRect(0, 0, 400, 440);
-  ctx.fillStyle = grainPattern(ctx); ctx.fillRect(0, 0, 400, 440);
-  ctx.restore();
-  ctx.save(); ctx.strokeStyle = edge; ctx.lineWidth = 1.2; ctx.stroke(path); ctx.restore();
-}
 function drawRibbon(ctx, x, y, color, scale) {
   const k = scale || 1;
   ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.translate(-x, -y);
@@ -667,47 +638,6 @@ function drawRibbon(ctx, x, y, color, scale) {
   ctx.restore();
   ctx.restore();
 }
-function drawSheerBack(ctx, cx, cy, R, W, rng) {
-  const bx = cx, by = cy + R * .95, n = 11;
-  for (let i = 0; i < n; i++) {
-    const t = i / (n - 1), a = -Math.PI / 2 + (t - .5) * Math.PI * .86 + (rng() - .5) * .08;
-    const len = R * (1.95 + (i % 2 ? .12 : 0) + rng() * .1) * (1 - Math.abs(t - .5) * .35), wid = R * (.9 + rng() * .16);
-    ctx.save(); ctx.translate(bx, by); ctx.rotate(a + Math.PI / 2);
-    const p = new Path2D();
-    p.moveTo(-wid * .26, 0); p.lineTo(-wid * .52, -len * .8);
-    p.bezierCurveTo(-wid * .36, -len * 1.03, -wid * .12, -len * .93, 0, -len);
-    p.bezierCurveTo(wid * .15, -len * 1.06, wid * .38, -len * .95, wid * .52, -len * .8);
-    p.lineTo(wid * .26, 0); p.closePath();
-    const col = i % 3 === 1 ? W.sheer : W.paper;
-    const g = ctx.createLinearGradient(0, 0, 0, -len);
-    g.addColorStop(0, hexA(col, .1)); g.addColorStop(.55, hexA(col, .62)); g.addColorStop(1, hexA(shade(col, .25), .9));
-    ctx.fillStyle = g; ctx.fill(p);
-    ctx.strokeStyle = hexA(W.edge, .55); ctx.lineWidth = 1.2; ctx.stroke(p);
-    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = .8; ctx.stroke(p);
-    ctx.strokeStyle = hexA(shade(col, -.14), .3); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(-wid * .05, -len * .2); ctx.quadraticCurveTo(wid * .08, -len * .6, wid * .02, -len * .97); ctx.stroke();
-    ctx.restore();
-  }
-}
-function drawSheerFront(ctx, cx, cy, R, tip, W) {
-  const fy = cy + R * .46;
-  const sheet = (dir, col, alpha, drop) => {
-    const p = new Path2D();
-    p.moveTo(cx + dir * 6, tip[1]);
-    p.lineTo(cx + dir * (R + 36), fy - R * .2 + drop);
-    p.bezierCurveTo(cx + dir * R * .82, fy + R * .06 + drop, cx + dir * R * .5, fy - R * .04 + drop, cx + dir * R * .24, fy + R * .12 + drop);
-    p.bezierCurveTo(cx + dir * R * .06, fy + R * .22 + drop, cx - dir * R * .08, fy + R * .15 + drop, cx - dir * R * .24, fy + R * .26 + drop);
-    p.closePath();
-    const g = ctx.createLinearGradient(0, fy - R * .2, 0, tip[1]);
-    g.addColorStop(0, hexA(shade(col, .18), alpha)); g.addColorStop(.5, hexA(col, alpha)); g.addColorStop(1, hexA(shade(col, -.1), Math.min(1, alpha + .08)));
-    ctx.save(); ctx.shadowColor = 'rgba(140,70,85,.2)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = -2; ctx.fillStyle = g; ctx.fill(p); ctx.restore();
-    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.4; ctx.stroke(p);
-    ctx.strokeStyle = hexA(shade(col, -.16), .28); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(cx + dir * 10, tip[1] - 8); ctx.quadraticCurveTo(cx + dir * R * .5, fy + R * .3 + drop, cx + dir * R * .8, fy - R * .02 + drop); ctx.stroke();
-  };
-  sheet(-1, W.paper, .94, 0); sheet(1, W.paper, .9, 0);
-  sheet(1, W.sheer, .62, R * .1); sheet(-1, W.sheer, .58, R * .12);
-}
 function drawCard(ctx, x, y, rot) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
   ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
@@ -725,6 +655,103 @@ function drawEmpty(ctx) {
   ctx.fillStyle = dim; ctx.font = '17px "Gowun Dodum", sans-serif'; ctx.textAlign = 'center';
   ctx.fillText('꽃을 담으면', 200, 196); ctx.fillText('여기에 다발이 그려져요', 200, 222); ctx.restore();
 }
+/* ---------- 포장지: 실제 포장지 사진 질감 + 겹겹이 감싼 구조 ---------- */
+// 꽃 덩어리(타원) 경계까지의 거리: 시트 길이를 꽃보다 조금 길게 잡을 때 씁니다
+function rayEllipse(nx, ny, dx, dy, a, b) {
+  const A = dx * dx / (a * a) + dy * dy / (b * b), B = 2 * (nx * dx / (a * a) + ny * dy / (b * b)), C = nx * nx / (a * a) + ny * ny / (b * b) - 1;
+  const disc = B * B - 4 * A * C;
+  return disc < 0 ? 0 : (-B + Math.sqrt(disc)) / (2 * A);
+}
+function wrapTex(W, k, alt) {
+  const list = alt && W.tex2 ? W.tex2 : W.tex;
+  return list ? IMG[list[k % list.length]] || null : null;
+}
+function texFill(ctx, path, tex, mx, my, ang, w, h, flip, alpha, fallback) {
+  ctx.save(); ctx.clip(path); ctx.globalAlpha = alpha;
+  if (tex) { ctx.translate(mx, my); ctx.rotate(ang); ctx.scale(flip, 1); ctx.drawImage(tex, -w / 2, -h / 2, w, h); }
+  else { ctx.fillStyle = fallback; ctx.fill(path); }
+  ctx.restore();
+}
+// 목(리본 묶는 곳)으로 갈수록 어둡고, 시트 양옆은 둥글게 말린 듯 어둡게
+function shadeSheet(ctx, path, nx, ny, tx, ty, lx, ly, rx, ry, W, k) {
+  ctx.save(); ctx.clip(path);
+  const g = ctx.createLinearGradient(nx, ny, tx, ty);
+  g.addColorStop(0, `rgba(0,0,0,${.55 * k})`); g.addColorStop(.42, `rgba(0,0,0,${.12 * k})`); g.addColorStop(1, 'rgba(255,255,255,.06)');
+  ctx.fillStyle = g; ctx.fill(path);
+  const c = ctx.createLinearGradient(lx, ly, rx, ry);
+  c.addColorStop(0, `rgba(0,0,0,${.2 * k})`); c.addColorStop(.32, 'rgba(0,0,0,0)');
+  c.addColorStop(.58, W.sheen ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.06)'); c.addColorStop(1, `rgba(0,0,0,${.14 * k})`);
+  ctx.fillStyle = c; ctx.fill(path);
+  ctx.restore();
+}
+// 시트 윗단이 살짝 접혀 넘어간 띠와 그 아래 그림자
+function foldBand(ctx, path, top, ox, oy, W) {
+  ctx.save(); ctx.clip(path);
+  ctx.lineWidth = 12; ctx.strokeStyle = W.style === 'sheer' ? 'rgba(255,255,255,.4)' : W.dark ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.2)'; ctx.stroke(top);
+  ctx.translate(ox, oy); ctx.lineWidth = 1.4; ctx.strokeStyle = W.dark ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.16)'; ctx.stroke(top);
+  ctx.restore();
+}
+function backSheet(ctx, W, k, N, theta, L, wTop, rng, alpha, alt) {
+  const dx = Math.cos(theta), dy = Math.sin(theta), px = -dy, py = dx;
+  const Tx = N[0] + dx * L, Ty = N[1] + dy * L;
+  const lx = Tx - px * wTop / 2, ly = Ty - py * wTop / 2, rx = Tx + px * wTop / 2, ry = Ty + py * wTop / 2;
+  const bulge = wTop * (.12 + rng() * .07), n0 = 7;
+  const edge = q => {
+    q.bezierCurveTo(lx + dx * bulge * .7 + px * wTop * .1, ly + dy * bulge * .7 + py * wTop * .1, Tx + dx * bulge - px * wTop * .14, Ty + dy * bulge - py * wTop * .14, Tx + dx * bulge * .85, Ty + dy * bulge * .85);
+    q.bezierCurveTo(Tx + dx * bulge + px * wTop * .16, Ty + dy * bulge + py * wTop * .16, rx + dx * bulge * .6 - px * wTop * .1, ry + dy * bulge * .6 - py * wTop * .1, rx, ry);
+  };
+  const top = new Path2D(); top.moveTo(lx, ly); edge(top);
+  const p = new Path2D();
+  p.moveTo(N[0] - px * n0, N[1] - py * n0);
+  p.quadraticCurveTo(N[0] + dx * L * .6 - px * wTop * .4, N[1] + dy * L * .6 - py * wTop * .4, lx, ly);
+  edge(p);
+  p.quadraticCurveTo(N[0] + dx * L * .6 + px * wTop * .4, N[1] + dy * L * .6 + py * wTop * .4, N[0] + px * n0, N[1] + py * n0);
+  p.closePath();
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.24)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4; ctx.fillStyle = hexA(W.paper, W.style === 'sheer' ? .35 : 1); ctx.fill(p); ctx.restore();
+  texFill(ctx, p, wrapTex(W, k, alt), N[0] + dx * L * .55, N[1] + dy * L * .55, theta + Math.PI / 2, wTop * 1.3, L * 1.15, rng() < .5 ? -1 : 1, alpha, W.paper);
+  shadeSheet(ctx, p, N[0], N[1], Tx, Ty, lx, ly, rx, ry, W, W.dark ? .6 : W.style === 'sheer' ? .55 : 1);
+  foldBand(ctx, p, top, -dx * 7, -dy * 7, W);
+  ctx.save(); ctx.lineWidth = .9; ctx.strokeStyle = W.edge; ctx.stroke(p); ctx.restore();
+}
+function frontSheet(ctx, W, k, side, N, R, rng, alpha, drop, alt) {
+  const s = side;
+  const O = [s * (R + 34), R * .18 + drop], I = [-s * R * .22, R * .68 + drop], C = [s * R * .4, R * .7 + drop + 8];
+  const top = new Path2D(); top.moveTo(O[0], O[1]); top.quadraticCurveTo(C[0], C[1], I[0], I[1]);
+  const p = new Path2D();
+  p.moveTo(N[0] + s * 3, N[1]); p.lineTo(O[0], O[1]); p.quadraticCurveTo(C[0], C[1], I[0], I[1]);
+  p.quadraticCurveTo(-s * R * .06, (I[1] + N[1]) / 2, N[0] - s * 5, N[1]); p.closePath();
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.32)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = -3; ctx.fillStyle = hexA(W.paper, W.style === 'sheer' ? .4 : 1); ctx.fill(p); ctx.restore();
+  const mx = (O[0] + I[0]) * .3, my = (Math.min(O[1], I[1]) + N[1]) / 2;
+  texFill(ctx, p, wrapTex(W, k + 1, alt), mx, my, Math.atan2(my - N[1], mx - N[0]) + Math.PI / 2, R * 1.75, (N[1] - O[1]) * 1.35, s, alpha, W.paper);
+  shadeSheet(ctx, p, N[0], N[1], mx, Math.min(O[1], I[1]), O[0], O[1], I[0], I[1], W, W.dark ? .55 : W.style === 'sheer' ? .5 : .9);
+  const vx = N[0] - (O[0] + I[0]) / 2, vy = N[1] - (O[1] + I[1]) / 2, vl = Math.hypot(vx, vy) || 1;
+  foldBand(ctx, p, top, vx / vl * 7, vy / vl * 7, W);
+  ctx.save(); ctx.lineWidth = .9; ctx.strokeStyle = W.edge; ctx.stroke(p); ctx.restore();
+}
+// 리본 아래로 모였다가 퍼지는 부분 (주름 포함)
+function skirtSheet(ctx, W, N, R, rng) {
+  const a = R * .13 + 7, b = R * .27 + 16, y1 = N[1] + R * .5 + 30;
+  const p = new Path2D();
+  p.moveTo(-a, N[1]); p.lineTo(-b, y1 - 3);
+  for (let i = 1; i <= 6; i++) { const x = -b + 2 * b * i / 6; p.quadraticCurveTo(x - b / 6, y1 + (i % 2 ? 7 : -2), x, y1 - 2); }
+  p.lineTo(a, N[1]); p.closePath();
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5; ctx.fillStyle = hexA(W.paper, W.style === 'sheer' ? .5 : 1); ctx.fill(p); ctx.restore();
+  texFill(ctx, p, wrapTex(W, 3, false), 0, (N[1] + y1) / 2, 0, b * 2.4, (y1 - N[1]) * 1.4, rng() < .5 ? -1 : 1, W.style === 'sheer' ? .9 : 1, W.paper);
+  ctx.save(); ctx.clip(p);
+  for (let i = 0; i < 7; i++) {
+    const t0 = i / 7, t1 = (i + 1) / 7;
+    const g = ctx.createLinearGradient(-b + 2 * b * t0, 0, -b + 2 * b * t1, 0);
+    g.addColorStop(0, `rgba(0,0,0,${W.dark ? .3 : .17})`); g.addColorStop(.55, W.dark ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.1)'); g.addColorStop(1, 'rgba(0,0,0,.03)');
+    ctx.fillStyle = g; ctx.beginPath();
+    ctx.moveTo(-a + 2 * a * t0, N[1]); ctx.lineTo(-b + 2 * b * t0, y1 + 9); ctx.lineTo(-b + 2 * b * t1, y1 + 9); ctx.lineTo(-a + 2 * a * t1, N[1]); ctx.closePath(); ctx.fill();
+  }
+  const v = ctx.createLinearGradient(0, N[1], 0, y1);
+  v.addColorStop(0, 'rgba(0,0,0,.38)'); v.addColorStop(.3, 'rgba(0,0,0,.08)'); v.addColorStop(1, 'rgba(0,0,0,.12)');
+  ctx.fillStyle = v; ctx.fill(p);
+  ctx.restore();
+  ctx.save(); ctx.lineWidth = .9; ctx.strokeStyle = W.edge; ctx.stroke(p); ctx.restore();
+  return y1;
+}
 function drawBouquet(canvas, items, wrapKey, card) {
   const ctx = canvas.getContext('2d'); const S = canvas.width / 400;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.setTransform(S, 0, 0, S, 0, 0);
@@ -736,25 +763,37 @@ function drawBouquet(canvas, items, wrapKey, card) {
   const fillers = stems.filter(s => meta(s).kind === 'filler');
   const heads = shuffle(stems.filter(s => meta(s).kind === 'head'), rng);
   const weight = heads.reduce((a, s) => a + Math.pow(meta(s).size || 1, 2), 0) + fillers.length * .6 + greens.length * .2;
-  const R = Math.min(138, 30 + 18.5 * Math.sqrt(Math.max(1, weight)));
-  const cx = 200, cy = 212 - .2 * R;
-  const tip = [cx, Math.min(432, cy + R * 1.22 + 66)];
-
-  // 뒤 포장지
+  const R = Math.min(150, 30 + 18.5 * Math.sqrt(Math.max(1, weight)));
   const sheer = W.style === 'sheer';
-  const L = [cx - R - 30, cy - R * .22], Rt = [cx + R + 30, cy - R * .22], T = [cx, cy - R * .98 - 22];
-  const back = new Path2D();
-  back.moveTo(tip[0], tip[1]); back.lineTo(L[0], L[1]);
-  back.quadraticCurveTo(cx - R * .7, cy - R - 40, T[0], T[1]);
-  back.quadraticCurveTo(cx + R * .7, cy - R - 40, Rt[0], Rt[1]); back.closePath();
-  const topPts = [];
-  for (let i = 0; i <= 8; i++) { const t = i / 8; const a = Math.PI + t * Math.PI; topPts.push([cx + Math.cos(a) * (R + 30), cy - R * .22 + Math.sin(a) * (R * .8 + 22)]); }
-  if (sheer) drawSheerBack(ctx, cx, cy, R, W, rng);
-  else {
-    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8; ctx.fillStyle = W.paper; ctx.fill(back); ctx.restore();
-    paperFill(ctx, back, W.paper, W.edge, tip, topPts, false);
+
+  // 꽃 중심을 (0,0)으로 두고 그린 뒤, 전체가 캔버스에 들어오도록 맞춤
+  const cx = 0, cy = 0;
+  const N = [0, R * .98 + 24];
+  const K = sheer ? 8 : 6, spread = sheer ? 2.6 : 2.3;
+  const ea = R + 26, eb = R * .8 + 30;
+  const sheets = [];
+  for (let k = 0; k < K; k++) {
+    const t = k / (K - 1), theta = -Math.PI / 2 + (t - .5) * spread + (rng() - .5) * .1;
+    const reach = rayEllipse(N[0], N[1], Math.cos(theta), Math.sin(theta), ea, eb);
+    const L = reach + (R * .24 + 16) * (1 - .45 * Math.abs(t - .5) * 2) * (.9 + rng() * .25);
+    sheets.push({ k, t, theta, L, w: R * (sheer ? .92 : 1.0) * (.92 + rng() * .16) });
   }
-  if (card) drawCard(ctx, cx + R * .5, cy - R * 1.02, .07);
+  const topY = Math.min(...sheets.map(s => N[1] + Math.sin(s.theta) * (s.L + s.w * .2)), card ? -R * 1.02 - 44 : 0);
+  const botY = N[1] + R * .5 + 40;
+  const halfW = R + 52;
+  const sc = Math.min(1, 430 / (botY - topY), 196 / halfW);
+  const ty = (440 - (botY - topY) * sc) / 2 - topY * sc;
+  ctx.translate(200, ty); ctx.scale(sc, sc);
+
+  // 바닥 그림자
+  const sh = ctx.createRadialGradient(0, R * .3, R * .2, 0, R * .3, R * 1.4);
+  sh.addColorStop(0, 'rgba(0,0,0,.18)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(0, R * .3, R * 1.4, R * 1.2, 0, 0, Math.PI * 2); ctx.fill();
+
+  // 뒤 포장지: 양옆부터 가운데 순서로 겹치기
+  sheets.slice().sort((a, b) => Math.abs(b.t - .5) - Math.abs(a.t - .5))
+    .forEach(s => backSheet(ctx, W, s.k, N, s.theta, s.L, s.w, rng, sheer ? .86 : 1, sheer && s.k % 3 === 1));
+  if (card) drawCard(ctx, R * .5, -R * 1.02, .07);
 
   // 잎 그늘 (꽃 사이 깊이감)
   const dg = ctx.createRadialGradient(cx, cy, R * .1, cx, cy, R * .92);
@@ -780,12 +819,10 @@ function drawBouquet(canvas, items, wrapKey, card) {
   // 잔꽃
   fillers.forEach((f, i) => {
     const img = getImg(f); if (!img) return;
-    // 가장자리로 삐져나온 가지
     let a = -Math.PI / 2 + ((i * .618 + rng() * .3) % 1 - .5) * Math.PI * 1.2, r = R * (.66 + rng() * .3);
     let size = 74 + rng() * 18;
     ctx.save(); ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .8); ctx.rotate(a + Math.PI / 2 + (rng() - .5) * .6);
     ctx.drawImage(img, -size / 2, -size * .8, size, size); ctx.restore();
-    // 꽃 사이 틈을 채우는 가지
     a = rng() * Math.PI * 2; r = R * (.15 + rng() * .5); size = 66 + rng() * 16;
     ctx.save(); ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .78); ctx.rotate((rng() - .5) * 1.2);
     ctx.drawImage(img, -size / 2, -size / 2, size, size); ctx.restore();
@@ -816,21 +853,15 @@ function drawBouquet(canvas, items, wrapKey, card) {
     ctx.restore();
   });
 
-  // 앞 포장지 두 장 + 리본
-  const fy = cy + R * .5;
+  // 리본 아래 치마 → 앞 포장지 → 리본
+  skirtSheet(ctx, W, N, R, rng);
+  frontSheet(ctx, W, 0, -1, N, R, rng, sheer ? .93 : 1, 0, false);
+  frontSheet(ctx, W, 1, 1, N, R, rng, sheer ? .9 : 1, 0, false);
   if (sheer) {
-    drawSheerFront(ctx, cx, cy, R, tip, W);
-    drawRibbon(ctx, cx, fy + (tip[1] - fy) * .5, W.ribbon, 1.75);
-    return;
+    frontSheet(ctx, W, 0, 1, N, R, rng, .7, R * .12, true);
+    frontSheet(ctx, W, 0, -1, N, R, rng, .66, R * .15, true);
   }
-  const left = new Path2D(); left.moveTo(tip[0], tip[1] + 4); left.lineTo(cx - R - 26, fy - 8); left.quadraticCurveTo(cx - R * .35, fy + R * .24, cx + 24, fy + 4); left.closePath();
-  const right = new Path2D(); right.moveTo(tip[0], tip[1] + 4); right.lineTo(cx + R + 26, fy - 8); right.quadraticCurveTo(cx + R * .35, fy + R * .24, cx - 24, fy + 4); right.closePath();
-  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = -2; ctx.fillStyle = W.paper; ctx.fill(left); ctx.restore();
-  paperFill(ctx, left, W.paper, W.edge, [tip[0], tip[1] + 4], [[cx - R - 26, fy - 8], [cx - R * .45, fy + R * .12], [cx - 10, fy + 8], [cx + 24, fy + 4]], true);
-  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = -3; ctx.fillStyle = shade(W.paper, -.05); ctx.fill(right); ctx.restore();
-  paperFill(ctx, right, shade(W.paper, -.05), W.edge, [tip[0], tip[1] + 4], [[cx - 24, fy + 4], [cx + 10, fy + 8], [cx + R * .45, fy + R * .12], [cx + R + 26, fy - 8]], true);
-  const ry = fy + (tip[1] - fy) * .42;
-  drawRibbon(ctx, cx, ry, W.ribbon);
+  drawRibbon(ctx, 0, N[1], W.ribbon, sheer ? 1.8 : 1.3);
 }
 let bqSeq = 0;
 const bqJobs = new Map();
